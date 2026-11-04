@@ -1,4 +1,4 @@
-package main
+package firestore
 
 import (
 	"context"
@@ -9,13 +9,13 @@ import (
 	"google.golang.org/api/option"
 )
 
-// InitFirestore return an authanticated firestore client instance using the applications default credentials
+// Init return an authanticated firestore client instance using the applications default credentials
 //
 // Parameters
 //
 //		ctx - handles request cancellations and timeouts
 //	 serviceAccountFilePath - path to the serviceAccount.json file
-func InitFirestore(ctx context.Context, serviceAccountFilePath string) (*firestore.Client, error) {
+func Init(ctx context.Context, serviceAccountFilePath string) (*firestore.Client, error) {
 	option := option.WithAuthCredentialsFile(option.ServiceAccount, serviceAccountFilePath)
 	app, err := firebase.NewApp(ctx, nil, option)
 	if err != nil {

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"chi-simple-server/internal"
+	"chi-simple-server/internal/storage/firestore"
+	"chi-simple-server/internal/user"
 	"context"
 	"log"
 	"net/http"
@@ -15,13 +18,15 @@ func main() {
 	ctx := context.Background()
 	serviceAccountFilePath := os.Getenv("SERVICE_ACCOUNT_PATH")
 
-	db, err := InitFirestore(ctx, serviceAccountFilePath)
+	db, err := firestore.Init(ctx, serviceAccountFilePath)
 	if err != nil {
 		log.Fatalf("Failed to initialize Firestore: %v", err)
 	}
 	defer db.Close()
 
-	h := NewHandler(db)
+	userRepo := firestore.NewUserRepo(db)
+	userService := user.NewService(userRepo)
+	h := internal.NewHandler(userService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
