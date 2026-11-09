@@ -1,14 +1,15 @@
 package internal
 
 import (
-	"chi-simple-server/internal/types"
+	"chi-simple-server/internal/user"
 	"context"
 	"encoding/json"
 	"net/http"
 )
 
 type userService interface {
-	FetchWorkoutInformation(ctx context.Context, userID string) (types.User, error)
+	FetchWorkoutInformation(ctx context.Context, userID string) (user.Workout, error)
+	Upload(ctx context.Context, userID string) error
 }
 
 type handler struct {
@@ -37,24 +38,16 @@ func (h *handler) FetchWorkout(w http.ResponseWriter, r *http.Request) {
 }
 
 // Upload is the handler for /upload - it updates the exercise after a workout
-
 func (h *handler) Upload(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		http.Error(w, "missing user_id", http.StatusBadRequest)
-		return
 	}
 
-	var data types.User
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		http.Error(w, "invalid payload", http.StatusBadRequest)
-		return
+	err := h.userService.Upload(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
-	//	if err := h.userService.fetchWorkoutInformation().Save(r.Context(), userID, &data); err != nil {
-	//	http.Error(w, err.Error(), http.StatusInternalServerError)
-	//	return
-	// }
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Upload success"})

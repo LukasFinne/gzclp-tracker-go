@@ -1,57 +1,63 @@
 package types
 
-// WorkoutDay represents what the users current day is in the program
-type workoutDay string
+// Workout defines a workout program
+//
+// Each workout has 3 exercises in their respective program and each have this following this protocol:
+//
+// First exericse is a tier 1 exercise, Second exercise is a tier 2 exercise and the third exercise is a tier 3 exercise
+type Workout string
 
 const (
-	A1 workoutDay = "A1"
-	A2 workoutDay = "A2"
-	B1 workoutDay = "B1"
-	B2 workoutDay = "B2"
+	A1 Workout = "A1"
+	A2 Workout = "A2"
+	B1 Workout = "B1"
+	B2 Workout = "B2"
+)
+
+// ExerciseTier represents the different progression schemes for an exercises repition depending on their type of tier
+type ExerciseTier string
+
+const (
+	T1 ExerciseTier = "T1"
+	T2 ExerciseTier = "T2"
+	T3 ExerciseTier = "T3"
 )
 
 // User represents the workout information for a user
+//
+// # Fields
+//
+// 1. CurrentWorkout is used as the key for the Program field to find the correspoding workout program
 type User struct {
-	CurrentWorkoutDay workoutDay                  `firestore:"currentWorkoutDay" json:"currentWorkoutDay"` // CurrentWorkoutDay holds the users current day (A1, A2, B1, B2)
-	DayOrder          []workoutDay                `firestore:"dayOrder" json:"dayOrder"`                   // DayOrder is the current set rotation of WorkoutDays
-	Program           map[workoutDay]programTiers `firestore:"days" json:"days"`                           // Program map has the exercise program for each day
-	Exercises         map[string]exerciseTiers    `firestore:"exercises" json:"exercises"`                 // Exercises map has the weight, set&rep values for each exercise
+	CurrentWorkout  Workout             `firestore:"currentWorkout" json:"currentWorkout"`
+	WorkoutRotation []Workout           `firestore:"workoutRotation" json:"workoutRotation"` // WorkoutRotation is the set rotation of workouts
+	Program         map[Workout]Program `firestore:"program" json:"program"`                 // Program map has the exercise program for each day
+	Exercises       map[string]Repition `firestore:"exercises" json:"exercises"`             // Exercises map key is the name of an exercise
 }
 
-// ProgramTiers defines the exercise assigned to each tier for a specific day.
-type programTiers struct {
-	T1 string `firestore:"T1,omitempty" json:"T1,omitempty"`
-	T2 string `firestore:"T2,omitempty" json:"T2,omitempty"`
-	T3 string `firestore:"T3,omitempty" json:"T3,omitempty"`
+type Exercise struct {
+	Name string `firestore:"exercise" json:"exercise"`
 }
 
-// ExerciseTiers maps tier progression configurations for an exercise.
-// Pointers with omitempty handle tiers not present on all exercises (e.g., T3 exercises lack T1 and T2).
-type exerciseTiers struct {
-	T1 *tierConfig `firestore:"T1,omitempty" json:"T1,omitempty"`
-	T2 *tierConfig `firestore:"T2,omitempty" json:"T2,omitempty"`
-	T3 *tierConfig `firestore:"T3,omitempty" json:"T3,omitempty"`
+// Program defines a workouts program by tier
+type Program map[ExerciseTier]Exercise
+
+// Repition has an exercises repition scheme for each of its tiers
+//
+// *Progression - a pointer value is used as every tier is not present on each exercise (e.g., T3 exercises lack T1 and T2).
+type Repition map[ExerciseTier]*Progression
+
+// Progression defines the progression scheme of an exercise
+//
+// # StageIndex is used to get the current stage of an exercise from Stages
+type Progression struct {
+	StageIndex int     `firestore:"stageIndex" json:"stageIndex"`
+	Stages     []Stage `firestore:"stages" json:"stages"`
 }
 
-// tierConfig defines the weight, current stage index, and progression scheme for a tier.
-// StageIndex is used to get the current stage from []Stages
-type tierConfig struct {
-	Weight     float64 `firestore:"weight" json:"weight"`
-	StageIndex int     `firestore:"stageIndex" json:"stageIndex"` // Represent the current stage of the exercise
-	Stages     []stage `firestore:"stages" json:"stages"`         // Array of each set & rep for each stage(1,2,3)
-}
-
-// stage defines set and repetition counts.
-type stage struct {
-	Sets int `firestore:"sets" json:"sets"`
-	Reps int `firestore:"reps" json:"reps"`
-}
-
-// Flatten exerice dervied from WorkoutInfo
-type flattenExercise struct {
-	Name   string  `firestore:"name"`
-	Tier   string  `firestore:"tier"`
-	Set    int     `firestore:"set"`
-	Rep    int     `firestore:"rep"`
-	Weight float64 `firestore:"weight"`
+// Stage defines the set, rep and weight for each stage of an progression
+type Stage struct {
+	Sets   int     `firestore:"sets" json:"sets"`
+	Reps   int     `firestore:"reps" json:"reps"`
+	Weight float64 `firestore:"weight" json:"weight"`
 }

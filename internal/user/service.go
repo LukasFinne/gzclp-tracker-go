@@ -3,6 +3,7 @@ package user
 import (
 	"chi-simple-server/internal/types"
 	"context"
+	"fmt"
 )
 
 // UserStore is used by services to make user-related queries to firestore
@@ -23,7 +24,31 @@ func NewService(userRepo userRepo) *service {
 	}
 }
 
-func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (types.User, error) {
+func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Workout, error) {
+	user, err := s.userRepo.FindByID(ctx, userID)
 
-	return types.User{}, nil
+	if err != nil {
+		return Workout{}, fmt.Errorf("Could not find user: %w", err)
+	}
+
+	program := user.Program[user.CurrentWorkout]
+
+	m := make(map[types.ExerciseTier]exercise, len(program))
+
+	for k, v := range program {
+		repetition := user.Exercises[v.Name]
+		progression := repetition[k]
+		m[k] = exercise{
+			Name:   v.Name,
+			Set:    progression.Stages[progression.StageIndex].Sets,
+			Rep:    progression.Stages[progression.StageIndex].Reps,
+			Weight: progression.Stages[progression.StageIndex].Weight,
+		}
+	}
+	return m, nil
+}
+
+func (s service) Upload(ctx context.Context, userID string) error {
+	err := s.userRepo.Save(ctx, userID, &types.User{})
+	return err
 }
