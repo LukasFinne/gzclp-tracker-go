@@ -6,14 +6,35 @@ import (
 	"fmt"
 )
 
-// UserStore is used by services to make user-related queries to firestore
+// userRepo is used by services to make user-related queries to firestore
 type userRepo interface {
+	// FindByID fetches all data for a user
+	//
+	// # Parameters
+	//
+	//	ctx context.Context - handles request cancellations and timeouts
+	//	userID string
+	//
+	// # Return values
+	//
+	//	*types.User - Contains the users workout information
+	//	error - returns either a Notfound error, Failed to decode error or General failed to fetch error
 	FindByID(ctx context.Context, userID string) (*types.User, error)
+	// Save updates the related fields in the data through an Transaction
+	//
+	// # Parameters
+	//
+	// ctx context.Context - handles request cancellations and timeouts
+	// userID string
+	// info *WorkoutInfo
+	//
+	// # Return values
+	//
+	//	error - returns an error if the updates has failed
 	Save(ctx context.Context, userID string, info *types.User) error
 }
 
-// Userservice is for handling user-related data from the database
-// And refacroting the data structure to a resonable format for the frontend to use.
+// service is for handling user-related data from the database
 type service struct {
 	userRepo userRepo
 }

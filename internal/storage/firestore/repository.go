@@ -20,17 +20,6 @@ func NewUserRepo(client *firestore.Client) *userRepo {
 	}
 }
 
-// FetchInformation queries all information for a user
-//
-// # Parameters
-//
-//	ctx context.Context - handles request cancellations and timeouts
-//	userID string
-//
-// # Return values
-//
-//	WorkoutInfo - Contains the users workout information
-//	error - returns either a Notfound error, Failed to decode error or General failed to fetch error
 func (up *userRepo) FindByID(ctx context.Context, userID string) (*types.User, error) {
 	docSnap, err := up.client.Collection("users").Doc(userID).Get(ctx)
 	if err != nil {
@@ -47,17 +36,6 @@ func (up *userRepo) FindByID(ctx context.Context, userID string) (*types.User, e
 	return &user, nil
 }
 
-// Save updates the related fields in the data through an Transaction
-//
-// # Parameters
-//
-// ctx context.Context - handles request cancellations and timeouts
-// userID string
-// info *WorkoutInfo
-//
-// # Return values
-//
-//	error - returns an error if the updates has failed
 func (up *userRepo) Save(ctx context.Context, userID string, info *types.User) error {
 	docRef := up.client.Collection("users").Doc(userID)
 	return up.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
