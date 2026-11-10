@@ -1,6 +1,6 @@
 package user
 
-import "chi-simple-server/internal/types"
+import "gzclp-tracker/internal/types"
 
 // Workout type contains all the derived fields from the database
 type Workout map[types.ExerciseTier]exercise

@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"chi-simple-server/internal/types"
-	"chi-simple-server/internal/user/testdata"
+	"gzclp-tracker/internal/types"
+	"gzclp-tracker/internal/user/testdata"
 )
 
 // mockUserRepo is a test double implementing the userRepo interface.

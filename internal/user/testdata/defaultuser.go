@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"chi-simple-server/internal/types"
+	"gzclp-tracker/internal/types"
 )
 
 //go:embed defaultuser.json

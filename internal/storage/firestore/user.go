@@ -1,10 +1,10 @@
 package firestore
 
 import (
-	"chi-simple-server/internal/types"
-	"chi-simple-server/internal/user"
 	"context"
 	"fmt"
+	"gzclp-tracker/internal/types"
+	"gzclp-tracker/internal/user"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/grpc/codes"

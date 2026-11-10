@@ -1,10 +1,10 @@
 package internal
 
 import (
-	"chi-simple-server/internal/user"
 	"context"
 	"encoding/json"
 	"errors"
+	"gzclp-tracker/internal/user"
 	"net/http"
 )
 

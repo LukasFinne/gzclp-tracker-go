@@ -1,10 +1,10 @@
 package main
 
 import (
-	"chi-simple-server/internal"
-	"chi-simple-server/internal/storage/firestore"
-	"chi-simple-server/internal/user"
 	"context"
+	"gzclp-tracker/internal"
+	"gzclp-tracker/internal/storage/firestore"
+	"gzclp-tracker/internal/user"
 	"log"
 	"net/http"
 	"os"

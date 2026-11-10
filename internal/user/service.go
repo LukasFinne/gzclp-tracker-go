@@ -1,8 +1,8 @@
 package user
 
 import (
-	"chi-simple-server/internal/types"
 	"context"
+	"gzclp-tracker/internal/types"
 )
 
 // userRepo is used by services to make user-related queries to firestore
