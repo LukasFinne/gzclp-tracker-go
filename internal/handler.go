@@ -15,7 +15,7 @@ type userService interface {
 	//
 	//	Workout - a map object that contains data for the workout program(name, weight, setxrep, etc...)
 	//
-	//	Error - returns a user not found error
+	//	Error - Returns either ErrUserNotFound or Generic failed error
 	FetchWorkoutInformation(ctx context.Context, userID string) (user.Workout, error)
 	Upload(ctx context.Context, userID string) error
 }

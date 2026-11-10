@@ -17,7 +17,7 @@ type userRepo interface {
 	// # Return values
 	//
 	//	*types.User - Contains the users workout information
-	//	error - returns either a Notfound error, Failed to decode error or General failed to fetch error
+	//	error - returns either a Notfound error or a Generic failed error
 	FindByID(ctx context.Context, userID string) (*types.User, error)
 	// Save updates the related fields in the data through an Transaction
 	//
