@@ -4,6 +4,7 @@ import (
 	"chi-simple-server/internal/user"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -33,7 +34,11 @@ func (h *handler) FetchWorkout(w http.ResponseWriter, r *http.Request) {
 
 	workout, err := h.userService.FetchWorkoutInformation(r.Context(), userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if errors.Is(err, user.ErrUserNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		} else {
+			http.Error(w, "failed to fetch workout for user", http.StatusInternalServerError)
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

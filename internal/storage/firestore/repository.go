@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"chi-simple-server/internal/types"
+	"chi-simple-server/internal/user"
 	"context"
 	"fmt"
 
@@ -24,9 +25,9 @@ func (up *userRepo) FindByID(ctx context.Context, userID string) (*types.User, e
 	docSnap, err := up.client.Collection("users").Doc(userID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return nil, fmt.Errorf("workout not found for user: %s", userID)
+			return nil, user.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to fetch workout: %w", err)
+		return nil, fmt.Errorf("failed to fetch user: %w", err)
 	}
 
 	var user types.User

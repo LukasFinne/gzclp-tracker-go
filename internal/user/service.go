@@ -3,7 +3,6 @@ package user
 import (
 	"chi-simple-server/internal/types"
 	"context"
-	"fmt"
 )
 
 // userRepo is used by services to make user-related queries to firestore
@@ -49,7 +48,7 @@ func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Wo
 	user, err := s.userRepo.FindByID(ctx, userID)
 
 	if err != nil {
-		return Workout{}, fmt.Errorf("Could not find user: %w", err)
+		return Workout{}, err
 	}
 
 	program := user.Program[user.CurrentWorkout]
