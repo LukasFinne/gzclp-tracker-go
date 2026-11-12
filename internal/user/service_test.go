@@ -14,6 +14,7 @@ import (
 type mockUserRepo struct {
 	findByIDFunc func(ctx context.Context, userID string) (*types.User, error)
 	saveFunc     func(ctx context.Context, userID string, info *types.User) error
+	savedUser    *types.User
 }
 
 func (m *mockUserRepo) FindByID(ctx context.Context, userID string) (*types.User, error) {
@@ -24,6 +25,7 @@ func (m *mockUserRepo) FindByID(ctx context.Context, userID string) (*types.User
 }
 
 func (m *mockUserRepo) Save(ctx context.Context, userID string, info *types.User) error {
+	m.savedUser = info
 	if m.saveFunc != nil {
 		return m.saveFunc(ctx, userID, info)
 	}
@@ -94,6 +96,81 @@ func TestFetchWorkoutInformation(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("FetchWorkoutInformation() got = %+v, want %+v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestUpload(t *testing.T) {
+	tests := []struct {
+		name    string
+		userID  string
+		result  WorkoutResult
+		repo    userRepo
+		want    types.User
+		wantErr bool
+	}{
+		{
+			name:   "success - updates the data correctly",
+			userID: "test-user-id",
+			result: WorkoutResult{
+				Workout: types.A1,
+				Exercises: map[types.ExerciseTier]ExerciseResult{
+					types.T1: {
+						Name:      "Squat",
+						IsSuccess: false,
+					},
+					types.T2: {
+						Name:      "Bench",
+						IsSuccess: true,
+					},
+					types.T3: {
+						Name:      "Lat pulldown",
+						IsSuccess: true,
+					},
+				},
+			},
+			repo: &mockUserRepo{
+				saveFunc: func(ctx context.Context, userID string, info *types.User) error {
+					return nil
+				},
+				findByIDFunc: func(ctx context.Context, userID string) (*types.User, error) {
+					return testdata.LoadDefaultUser(t), nil
+				},
+			},
+			want: types.User{
+				CurrentWorkout: types.B1,
+				Exercises: func() map[string]types.Repition {
+					u := testdata.LoadDefaultUser(t)
+					// Squat T1 failed -> moves to stage 1
+					u.Exercises["Squat"][types.T1].StageIndex = 1
+					u.Exercises["Bench"][types.T2].Weight = 20
+					return u.Exercises
+				}(),
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			svc := NewService(tc.repo)
+
+			err := svc.Upload(context.Background(), tc.userID, tc.result)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Upload() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			if tc.wantErr {
+				return
+			}
+
+			mockRepo, ok := tc.repo.(*mockUserRepo)
+			if !ok || mockRepo.savedUser == nil {
+				t.Fatal("Upload() did not save user")
+			}
+
+			if !reflect.DeepEqual(*mockRepo.savedUser, tc.want) {
+				t.Errorf("Upload() got = %+v, want %+v", *mockRepo.savedUser, tc.want)
 			}
 		})
 	}

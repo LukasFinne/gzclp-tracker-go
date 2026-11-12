@@ -70,6 +70,7 @@
       "T2": {
         "stageIndex": 1,
         "weight": 10,
+        "weightIncrease": 10,
         "stages": [
           { "sets": 3, "reps": 10 },
           { "sets": 3, "reps": 8 },

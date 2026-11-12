@@ -10,11 +10,11 @@ import "gzclp-tracker/internal/types"
 //	Exercises - Contains all of the failed or succeeded exercises by tier
 type WorkoutResult struct {
 	Workout   types.Workout                         `firestore:"workout" json:"workout"`
-	Exercises map[types.ExerciseTier]exerciseResult `firestore:"exercises" json:"exercises"`
+	Exercises map[types.ExerciseTier]ExerciseResult `firestore:"exercises" json:"exercises"`
 }
 
 // Exercise contains the name and result of the exercise
-type exerciseResult struct {
+type ExerciseResult struct {
 	Name      string `firestore:"name" json:"name"`
 	IsSuccess bool   `firestore:"isSuccess" json:"isSuccess"`
 }
