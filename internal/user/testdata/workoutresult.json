@@ -1,0 +1,17 @@
+{
+  "workout": "A1",
+  "exercises": {
+    "T1": {
+      "name": "Squat",
+      "isSuccess": true
+    },
+    "T2": {
+      "name": "Squat",
+      "isSuccess": false
+    },
+    "T3": {
+      "name": "Squat",
+      "isSuccess": true
+    }
+  }
+}

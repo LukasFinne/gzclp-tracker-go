@@ -24,12 +24,14 @@ type userRepo interface {
 	// # Parameters
 	//
 	// ctx context.Context - handles request cancellations and timeouts
+	//
 	// userID string
-	// info *WorkoutInfo
+	//
+	// data *types.User - updated data from the client
 	//
 	// # Return values
 	//
-	//	error - returns an error if the updates has failed
+	//	error - returns a update failed error
 	Save(ctx context.Context, userID string, info *types.User) error
 }
 
@@ -62,13 +64,39 @@ func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Wo
 			Name:   v.Name,
 			Set:    progression.Stages[progression.StageIndex].Sets,
 			Rep:    progression.Stages[progression.StageIndex].Reps,
-			Weight: progression.Stages[progression.StageIndex].Weight,
+			Weight: progression.Weight,
 		}
 	}
 	return m, nil
 }
 
-func (s service) Upload(ctx context.Context, userID string) error {
-	err := s.userRepo.Save(ctx, userID, &types.User{})
-	return err
+// Upload calculates the new workout weight, set and rep progession as well as deciding what workout is next.
+func (s service) Upload(ctx context.Context, userID string, workoutResult WorkoutResult) error {
+
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	rotate := user.WorkoutRotation[workoutResult.Workout]
+
+	// Loop iteration:
+	// 1. Finds exercises weight and setxrep for each tier (T1,T2,T3)
+	// 2. Selects the revelant tier (T1,T2,T3)
+	// 3. Updates the weight and setxrep
+	for tier, exercise := range workoutResult.Exercises {
+		reptitions := user.Exercises[exercise.Name]
+		progression := reptitions[tier]
+		progression.CalculateProgression(exercise.IsSuccess)
+	}
+
+	err = s.userRepo.Save(ctx, userID, &types.User{
+		CurrentWorkout: rotate.Next,
+		Exercises:      user.Exercises,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -14,7 +14,14 @@ const (
 	B2 Workout = "B2"
 )
 
-// ExerciseTier represents the different progression schemes for an exercise
+// WorkRotation defines the rotation of each workout
+type WorkRotation map[Workout]NextWorkout
+
+type NextWorkout struct {
+	Next Workout `firestore:"next" json:"next"`
+}
+
+// ExerciseTier represents the different tiers for an exercise
 type ExerciseTier string
 
 const (
@@ -36,7 +43,7 @@ const (
 // 4. Exercises map key is the name of an exercise and has the repition for each exercise
 type User struct {
 	CurrentWorkout  Workout             `firestore:"currentWorkout" json:"currentWorkout"`
-	WorkoutRotation []Workout           `firestore:"workoutRotation" json:"workoutRotation"`
+	WorkoutRotation WorkRotation        `firestore:"workoutRotation" json:"workoutRotation"`
 	Program         map[Workout]Program `firestore:"program" json:"program"`
 	Exercises       map[string]Repition `firestore:"exercises" json:"exercises"`
 }
@@ -62,13 +69,33 @@ type Repition map[ExerciseTier]*Progression
 //
 // # StageIndex is used to get the current stage of an exercise from Stages
 type Progression struct {
-	StageIndex int     `firestore:"stageIndex" json:"stageIndex"`
-	Stages     []Stage `firestore:"stages" json:"stages"`
+	StageIndex            int     `firestore:"stageIndex" json:"stageIndex"`
+	Stages                []Stage `firestore:"stages" json:"stages"`
+	Weight                float64 `firestore:"weight" json:"weight"`
+	WeightIncrease        float64 `firestore:"weightIncrease" json:"weightIncrease"`
+	WeightResetPercentage float64 `firestore:"weightResetPercentage" json:"weightResetPercentage"`
 }
 
-// Stage defines the set, rep and weight for each stage of an progression
+// Stage defines the set and rep progession
 type Stage struct {
-	Sets   int     `firestore:"sets" json:"sets"`
-	Reps   int     `firestore:"reps" json:"reps"`
-	Weight float64 `firestore:"weight" json:"weight"`
+	Sets int `firestore:"sets" json:"sets"`
+	Reps int `firestore:"reps" json:"reps"`
+}
+
+// CalculateProgession updates the new weight and setxrep depending on the exercises success and failure
+func (p *Progression) CalculateProgression(exerciseResult bool) {
+	currentStage := p.StageIndex
+	newStage := (p.StageIndex + 1) % len(p.Stages)
+
+	if exerciseResult {
+		p.Weight = p.Weight + p.WeightIncrease
+	} else {
+		// Decides if the setxrep progession has been resetted
+		if currentStage == len(p.Stages)-1 && currentStage > newStage {
+			p.Weight = p.Weight * p.WeightResetPercentage
+		}
+
+		p.StageIndex = newStage
+	}
+
 }

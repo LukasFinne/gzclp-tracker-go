@@ -1,6 +1,19 @@
 {
   "currentWorkout": "B1",
-  "WorkoutRotation": ["A1", "B1", "A2", "B2"],
+  "WorkoutRotation": {
+    "A1": {
+      "next": "B1"
+    },
+    "B1": {
+      "next": "A2"
+    },
+    "A2": {
+      "next": "B2"
+    },
+    "B2": {
+      "next": "A1"
+    }
+  },
   "Program": {
     "A1": {
       "T1": { "exercise": "Squat" },
@@ -27,85 +40,95 @@
     "Squat": {
       "T1": {
         "stageIndex": 0,
+        "weight": 10,
         "stages": [
-          { "sets": 5, "reps": 3, "weight": 25 },
-          { "sets": 6, "reps": 2, "weight": 25 },
-          { "sets": 10, "reps": 1, "weight": 25 }
+          { "sets": 5, "reps": 3 },
+          { "sets": 6, "reps": 2 },
+          { "sets": 10, "reps": 1 }
         ]
       },
       "T2": {
         "stageIndex": 0,
+        "weight": 10,
         "stages": [
-          { "sets": 3, "reps": 10, "weight": 25 },
-          { "sets": 3, "reps": 8, "weight": 25 },
-          { "sets": 3, "reps": 6, "weight": 25 }
+          { "sets": 3, "reps": 10 },
+          { "sets": 3, "reps": 8 },
+          { "sets": 3, "reps": 6 }
         ]
       }
     },
     "Bench": {
       "T1": {
         "stageIndex": 0,
+        "weight": 10,
         "stages": [
-          { "sets": 5, "reps": 3, "weight": 16.5 },
-          { "sets": 6, "reps": 2, "weight": 16.5 },
-          { "sets": 10, "reps": 1, "weight": 16.5 }
+          { "sets": 5, "reps": 3 },
+          { "sets": 6, "reps": 2 },
+          { "sets": 10, "reps": 1 }
         ]
       },
       "T2": {
         "stageIndex": 1,
+        "weight": 10,
         "stages": [
-          { "sets": 3, "reps": 10, "weight": 14 },
-          { "sets": 3, "reps": 8, "weight": 14 },
-          { "sets": 3, "reps": 6, "weight": 14 }
+          { "sets": 3, "reps": 10 },
+          { "sets": 3, "reps": 8 },
+          { "sets": 3, "reps": 6 }
         ]
       }
     },
     "OHP": {
       "T1": {
         "stageIndex": 0,
+        "weight": 10,
         "stages": [
-          { "sets": 5, "reps": 3, "weight": 14.5 },
-          { "sets": 6, "reps": 2, "weight": 14.5 },
-          { "sets": 10, "reps": 1, "weight": 14.5 }
+          { "sets": 5, "reps": 3 },
+          { "sets": 6, "reps": 2 },
+          { "sets": 10, "reps": 1 }
         ]
       },
       "T2": {
         "stageIndex": 1,
+        "weight": 10,
         "stages": [
-          { "sets": 3, "reps": 10, "weight": 12 },
-          { "sets": 3, "reps": 8, "weight": 12 },
-          { "sets": 3, "reps": 6, "weight": 12 }
+          { "sets": 3, "reps": 10 },
+          { "sets": 3, "reps": 8 },
+          { "sets": 3, "reps": 6 }
         ]
       }
     },
     "Deadlift": {
       "T1": {
         "stageIndex": 0,
+        "weight": 10,
         "stages": [
-          { "sets": 5, "reps": 3, "weight": 25 },
-          { "sets": 6, "reps": 2, "weight": 25 },
-          { "sets": 10, "reps": 1, "weight": 25 }
+          { "sets": 5, "reps": 3 },
+          { "sets": 6, "reps": 2 },
+          { "sets": 10, "reps": 1 }
         ]
       },
       "T2": {
         "stageIndex": 0,
+        "weight": 10,
         "stages": [
-          { "sets": 3, "reps": 10, "weight": 25 },
-          { "sets": 3, "reps": 8, "weight": 25 },
-          { "sets": 3, "reps": 6, "weight": 25 }
+          { "sets": 3, "reps": 10 },
+          { "sets": 3, "reps": 8 },
+          { "sets": 3, "reps": 6 }
         ]
       }
     },
     "Lat pulldown": {
       "T3": {
         "stageIndex": 0,
-        "stages": [{ "sets": 3, "reps": 15, "weight": 32 }]
+        "weight": 10,
+        "stages": [{ "sets": 3, "reps": 15 }]
       }
     },
     "Dumbbell row": {
       "T3": {
         "stageIndex": 0,
-        "stages": [{ "sets": 3, "reps": 15, "weight": 8 }]
+        "weight": 10,
+        "stages": [{ "sets": 3, "reps": 15 }]
       }
     }
   }

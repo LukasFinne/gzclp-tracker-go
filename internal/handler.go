@@ -17,7 +17,21 @@ type userService interface {
 	//
 	//	Error - Returns either ErrUserNotFound or Generic failed error
 	FetchWorkoutInformation(ctx context.Context, userID string) (user.Workout, error)
-	Upload(ctx context.Context, userID string) error
+
+	// Upload will updated the database with the new workout result from the client
+	//
+	// # Parameters
+	//
+	// ctx context.Context - handles metadata, request cancellations and timeouts
+	//
+	// userID string
+	//
+	// workoutResult - the result of an workout sent by the client
+	//
+	// # Return
+	//
+	// error - returns a updated failed error
+	Upload(ctx context.Context, userID string, workoutResult user.WorkoutResult) error
 }
 
 type handler struct {
@@ -52,7 +66,12 @@ func (h *handler) Upload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing user_id", http.StatusBadRequest)
 	}
 
-	err := h.userService.Upload(r.Context(), userID)
+	var workoutResult user.WorkoutResult
+	if err := json.NewDecoder(r.Body).Decode(&workoutResult); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+	}
+
+	err := h.userService.Upload(r.Context(), userID, workoutResult)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
