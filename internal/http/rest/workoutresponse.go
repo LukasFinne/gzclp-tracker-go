@@ -2,6 +2,7 @@ package handler
 
 import (
 	"gzclp-tracker/internal/types"
+	"gzclp-tracker/internal/user"
 )
 
 // WorkoutResponse type contains all the derived fields from the database
@@ -16,7 +17,7 @@ type exercise struct {
 }
 
 // Converts programInfo to the dto Workout
-func ToResponse(programInfo map[types.ExerciseID]types.Info) WorkoutResponse {
+func ToResponse(programInfo map[types.ExerciseID]user.Info) WorkoutResponse {
 
 	workout := make(WorkoutResponse, len(programInfo))
 

@@ -11,25 +11,35 @@ import (
 //go:embed defaultuser.json
 var defaultUserJSON []byte
 
-//go:embed workoutresult.json
-var workoutResultJSON []byte
-
-// LoadDefaultUser unmarshals a clean copy of defaultuser.json for testing.
-func LoadDefaultUser(t *testing.T) *types.User {
-	t.Helper()
-	var u types.User
-	if err := json.Unmarshal(defaultUserJSON, &u); err != nil {
-		t.Fatalf("failed to unmarshal defaultuser.json: %v", err)
-	}
-	return &u
+// TestProgramEntity is a local JSON representation of the test data
+// to avoid import cycles between user and storage/firestore.
+type TestProgramEntity struct {
+	Current types.Workout               `json:"current"`
+	Workout map[types.Workout]Exercises `json:"workout"`
 }
 
-// LoadWorkoutResult unmarshals a clean copy of workoutresult.json for testing.
-func LoadWorkoutResult(t *testing.T) *types.User {
+type Exercises map[types.ExerciseID]TestDetails
+
+type TestDetails struct {
+	Name                 string                    `json:"name"`
+	Repition             int                       `json:"repition"`
+	RepitionsProgression []TestRepitionProgression `json:"repitionsProgression"`
+	Weight               float64                   `json:"weight"`
+	Increase             float64                   `json:"increase"`
+	Reset                float64                   `json:"reset"`
+}
+
+type TestRepitionProgression struct {
+	Set int `json:"set"`
+	Rep int `json:"rep"`
+}
+
+// LoadDefaultProgramEntity unmarshals defaultuser.json into a TestProgramEntity.
+func LoadDefaultProgramEntity(t *testing.T) *TestProgramEntity {
 	t.Helper()
-	var u types.User
-	if err := json.Unmarshal(workoutResultJSON, &u); err != nil {
-		t.Fatalf("failed to unmarshal workoutresult.json: %v", err)
+	var entity TestProgramEntity
+	if err := json.Unmarshal(defaultUserJSON, &entity); err != nil {
+		t.Fatalf("failed to unmarshal defaultuser.json: %v", err)
 	}
-	return &u
+	return &entity
 }

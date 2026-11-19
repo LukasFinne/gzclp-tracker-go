@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gzclp-tracker/internal/handler"
+	handler "gzclp-tracker/internal/http/rest"
 	"gzclp-tracker/internal/storage/firestore"
 	"gzclp-tracker/internal/user"
 	"log"

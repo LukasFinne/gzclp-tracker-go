@@ -22,10 +22,3 @@ const (
 	T2 ExerciseID = "T2" // The secondary exercise
 	T3 ExerciseID = "T3" // The tertiary exercise
 )
-
-type Info struct {
-	Name   string
-	Set    int
-	Rep    int
-	Weight float64
-}

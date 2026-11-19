@@ -10,7 +10,8 @@ type Program struct {
 	Workout map[types.Workout]Exercise // List of all workouts
 }
 
-type Exercise map[types.ExerciseID]Details
+// Exercise contains details of an exercise
+type Exercise map[types.ExerciseID]*Details
 
 type Details struct {
 	Name                 string
@@ -32,14 +33,14 @@ type Result struct {
 	Exercises map[types.ExerciseID]bool // exercises has the data about which exercise is failed or successed
 }
 
-func (p *Program) Info() map[types.ExerciseID]types.Info {
+func (p *Program) Info() map[types.ExerciseID]Info {
 	exercises := p.Workout[p.Current]
 
-	var allExercises = make(map[types.ExerciseID]types.Info, len(exercises))
+	var allExercises = make(map[types.ExerciseID]Info, len(exercises))
 
 	for k, v := range exercises {
 		repition := v.RepitionsProgression[v.Repition]
-		allExercises[k] = types.Info{
+		allExercises[k] = Info{
 			Name:   v.Name,
 			Set:    repition.Set,
 			Rep:    repition.Rep,
@@ -55,6 +56,9 @@ func (p *Program) Update(result Result) {
 
 	for ID, result := range result.Exercises {
 		details := exercises[ID]
+		if details == nil {
+			continue
+		}
 		if result {
 			details.Weight = details.Weight + details.Increase
 		} else {

@@ -32,12 +32,45 @@ func (m *mockUserRepo) Save(ctx context.Context, userID string, info *Program) e
 	return nil
 }
 
+func loadTestProgram(t *testing.T) *Program {
+	t.Helper()
+	entity := testdata.LoadDefaultProgramEntity(t)
+
+	workout := make(map[types.Workout]Exercise, len(entity.Workout))
+	for wID, exercises := range entity.Workout {
+		exMap := make(Exercise, len(exercises))
+		for eID, d := range exercises {
+			progressions := make([]Repitions, len(d.RepitionsProgression))
+			for i, p := range d.RepitionsProgression {
+				progressions[i] = Repitions{
+					Set: p.Set,
+					Rep: p.Rep,
+				}
+			}
+			exMap[eID] = &Details{
+				Name:                 d.Name,
+				Repition:             d.Repition,
+				RepitionsProgression: progressions,
+				Weight:               d.Weight,
+				Increase:             d.Increase,
+				Reset:                d.Reset,
+			}
+		}
+		workout[wID] = exMap
+	}
+
+	return &Program{
+		Current: entity.Current,
+		Workout: workout,
+	}
+}
+
 func TestFetchWorkoutInformation(t *testing.T) {
 	tests := []struct {
 		name    string
 		userID  string
 		repo    userRepo
-		want    map[types.ExerciseID]types.Info
+		want    map[types.ExerciseID]Info
 		wantErr bool
 	}{
 		{
@@ -45,23 +78,23 @@ func TestFetchWorkoutInformation(t *testing.T) {
 			userID: "test-user-id",
 			repo: &mockUserRepo{
 				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
-					return testdata.LoadDefaultUser(t), nil
+					return loadTestProgram(t), nil
 				},
 			},
-			want: Exercise{
-				"T1": types.Info{
+			want: map[types.ExerciseID]Info{
+				types.T1: {
 					Name:   "OHP",
 					Set:    5,
 					Rep:    3,
-					Weight: 10.1,
+					Weight: 10,
 				},
-				"T2": Details{
+				types.T2: {
 					Name:   "Deadlift",
 					Set:    3,
 					Rep:    10,
 					Weight: 10,
 				},
-				"T3": Details{
+				types.T3: {
 					Name:   "Dumbbell row",
 					Set:    3,
 					Rep:    15,
@@ -107,7 +140,7 @@ func TestUpload(t *testing.T) {
 		userID  string
 		result  Result
 		repo    userRepo
-		want    Program
+		want    *Program
 		wantErr bool
 	}{
 		{
@@ -115,19 +148,10 @@ func TestUpload(t *testing.T) {
 			userID: "test-user-id",
 			result: Result{
 				Workout: types.A1,
-				Exercises: map[types.ExerciseID]Details{
-					types.T1: {
-						Name:      "Squat",
-						IsSuccess: false,
-					},
-					types.T2: {
-						Name:      "Bench",
-						IsSuccess: true,
-					},
-					types.T3: {
-						Name:      "Lat pulldown",
-						IsSuccess: true,
-					},
+				Exercises: map[types.ExerciseID]bool{
+					types.T1: false, // Squat T1 fails -> advances stageIndex (Repition) to 1
+					types.T2: true,  // Bench T2 succeeds -> weight increased by 10 (10 + 10 = 20)
+					types.T3: true,  // Lat pulldown T3 succeeds -> weight increased by 2.5 (10 + 2.5 = 12.5)
 				},
 			},
 			repo: &mockUserRepo{
@@ -135,19 +159,19 @@ func TestUpload(t *testing.T) {
 					return nil
 				},
 				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
-					return testdata.LoadDefaultUser(t), nil
+					return loadTestProgram(t), nil
 				},
 			},
-			want: Program{
-				CurrentWorkout: types.B1,
-				Exercises: func() map[string]types.Repition {
-					u := testdata.LoadDefaultUser(t)
-					// Squat T1 failed -> moves to stage 1
-					u.Exercises["Squat"][types.T1].StageIndex = 1
-					u.Exercises["Bench"][types.T2].Weight = 20
-					return u.Exercises
-				}(),
-			},
+			want: func() *Program {
+				p := loadTestProgram(t)
+				// Squat T1 failed -> stage 1
+				p.Workout[types.A1][types.T1].Repition = 1
+				// Bench T2 succeeded -> weight 20
+				p.Workout[types.A1][types.T2].Weight = 20
+				// Lat pulldown T3 succeeded -> weight 12.5
+				p.Workout[types.A1][types.T3].Weight = 12.5
+				return p
+			}(),
 			wantErr: false,
 		},
 	}
@@ -169,8 +193,8 @@ func TestUpload(t *testing.T) {
 				t.Fatal("Upload() did not save user")
 			}
 
-			if !reflect.DeepEqual(*mockRepo.savedUser, tc.want) {
-				t.Errorf("Upload() got = %+v, want %+v", *mockRepo.savedUser, tc.want)
+			if !reflect.DeepEqual(mockRepo.savedUser, tc.want) {
+				t.Errorf("Upload() got = %+v, want %+v", mockRepo.savedUser, tc.want)
 			}
 		})
 	}

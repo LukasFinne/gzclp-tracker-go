@@ -4,12 +4,20 @@ import (
 	"gzclp-tracker/internal/types"
 )
 
-// exerciser describes how to find and update all exercises
+// exerciser describes how to find and update workout programs
 type exerciser interface {
 	// Info returns the derived data from a workout and includes an exercises: Name, Weight and SetxRep
-	Info() map[types.ExerciseID]types.Info
+	//
+	// # Return
+	//  map[types.ExerciseID]Info is a concise object that includes all exercises from a specific workout
+	Info() map[types.ExerciseID]Info
 
-	// Update updates weight, setxrep and changes the current workout based on the result for each exercise in a workout
+	// Update updates the workout program exercises(Weight, Set & Rep) based on if it was a success or failure.
+	// As well as, changing to the next workout program in the rotation.
+	//
+	// # Fields
+	//  results Result - The result data of a workout sent from the client
+	//
 	Update(results Result)
 }
 
@@ -21,4 +29,11 @@ func NewWorkout(exerciser exerciser) workout {
 
 type workout struct {
 	Exercise exerciser
+}
+
+type Info struct {
+	Name   string
+	Set    int
+	Rep    int
+	Weight float64
 }

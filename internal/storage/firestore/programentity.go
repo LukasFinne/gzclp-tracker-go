@@ -80,7 +80,7 @@ func (p ProgramEntity) ToProgram() *user.Program {
 				}
 			}
 
-			exercises[exID] = user.Details{
+			exercises[exID] = &user.Details{
 				Name:                 d.Name,
 				Repition:             d.Repition,
 				RepitionsProgression: progressions,
