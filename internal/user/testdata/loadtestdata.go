@@ -14,11 +14,14 @@ var defaultUserJSON []byte
 // TestProgramEntity is a local JSON representation of the test data
 // to avoid import cycles between user and storage/firestore.
 type TestProgramEntity struct {
-	Current types.Workout               `json:"current"`
-	Workout map[types.Workout]Exercises `json:"workout"`
+	Current  types.Workout                        `json:"current"`
+	Workouts map[types.Workout]TestWorkoutSession `json:"workouts"`
 }
 
-type Exercises map[types.ExerciseID]TestDetails
+type TestWorkoutSession struct {
+	NextWorkout types.Workout                    `json:"nextworkout"`
+	Exercises   map[types.ExerciseID]TestDetails `json:"exercises"`
+}
 
 type TestDetails struct {
 	Name                 string                    `json:"name"`

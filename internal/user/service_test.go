@@ -36,10 +36,10 @@ func loadTestProgram(t *testing.T) *Program {
 	t.Helper()
 	entity := testdata.LoadDefaultProgramEntity(t)
 
-	workout := make(map[types.Workout]Exercise, len(entity.Workout))
-	for wID, exercises := range entity.Workout {
-		exMap := make(Exercise, len(exercises))
-		for eID, d := range exercises {
+	workouts := make(map[types.Workout]WorkoutSession, len(entity.Workouts))
+	for wID, session := range entity.Workouts {
+		exMap := make(map[types.ExerciseID]*Details, len(session.Exercises))
+		for eID, d := range session.Exercises {
 			progressions := make([]Repitions, len(d.RepitionsProgression))
 			for i, p := range d.RepitionsProgression {
 				progressions[i] = Repitions{
@@ -56,12 +56,15 @@ func loadTestProgram(t *testing.T) *Program {
 				Reset:                d.Reset,
 			}
 		}
-		workout[wID] = exMap
+		workouts[wID] = WorkoutSession{
+			NextWorkout: session.NextWorkout,
+			Exercises:   exMap,
+		}
 	}
 
 	return &Program{
-		Current: entity.Current,
-		Workout: workout,
+		Current:  entity.Current,
+		Workouts: workouts,
 	}
 }
 
@@ -165,11 +168,13 @@ func TestUpload(t *testing.T) {
 			want: func() *Program {
 				p := loadTestProgram(t)
 				// Squat T1 failed -> stage 1
-				p.Workout[types.A1][types.T1].Repition = 1
+				p.Workouts[types.A1].Exercises[types.T1].Repition = 1
 				// Bench T2 succeeded -> weight 20
-				p.Workout[types.A1][types.T2].Weight = 20
+				p.Workouts[types.A1].Exercises[types.T2].Weight = 20
 				// Lat pulldown T3 succeeded -> weight 12.5
-				p.Workout[types.A1][types.T3].Weight = 12.5
+				p.Workouts[types.A1].Exercises[types.T3].Weight = 12.5
+				// Current advances to next workout of A1 ("B1")
+				p.Current = p.Workouts[types.A1].NextWorkout
 				return p
 			}(),
 			wantErr: false,

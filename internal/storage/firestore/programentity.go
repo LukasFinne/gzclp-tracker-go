@@ -7,11 +7,16 @@ import (
 
 // ProgramEntity represents the data that is stored in the database
 type ProgramEntity struct {
-	Current types.Workout               `firestore:"current" json:"current"`
-	Workout map[types.Workout]Exercises `firestore:"workout" json:"workout"`
+	Current types.Workout                    `firestore:"current" json:"current"`
+	Workout map[types.Workout]WorkoutSession `firestore:"workouts" json:"workouts"`
 }
 
-type Exercises map[types.ExerciseID]Details
+type WorkoutSession struct {
+	Next types.Workout `firestore:"nextworkout" json:"nextworkout"`
+	T1   *Details      `firestore:"T1" json:"T1"`
+	T2   *Details      `firestore:"T2" json:"T2"`
+	T3   *Details      `firestore:"T3" json:"T3"`
+}
 
 // Details contains the progression, current stage and weight configuration for an exercise.
 type Details struct {
@@ -29,72 +34,100 @@ type RepitionProgression struct {
 }
 
 func ToProgramEntity(program user.Program) *ProgramEntity {
-	workout := make(map[types.Workout]Exercises, len(program.Workout))
+	workoutMap := make(map[types.Workout]WorkoutSession, len(program.Workouts))
 
-	for workoutID, programExercises := range program.Workout {
-		exercises := make(Exercises, len(programExercises))
-
-		for exID, d := range programExercises {
-			progressions := make([]RepitionProgression, len(d.RepitionsProgression))
-			for i, p := range d.RepitionsProgression {
-				progressions[i] = RepitionProgression{
-					Set: p.Set,
-					Rep: p.Rep,
-				}
-			}
-
-			exercises[exID] = Details{
-				Name:                 d.Name,
-				Repition:             d.Repition,
-				RepitionsProgression: progressions,
-				Weight:               d.Weight,
-				Increase:             d.Increase,
-				Reset:                d.Reset,
-			}
+	for workoutID, programWorkout := range program.Workouts {
+		session := WorkoutSession{
+			Next: programWorkout.NextWorkout,
 		}
 
-		workout[workoutID] = exercises
+		if d, ok := programWorkout.Exercises[types.T1]; ok && d != nil {
+			session.T1 = toEntityDetails(d)
+		}
+		if d, ok := programWorkout.Exercises[types.T2]; ok && d != nil {
+			session.T2 = toEntityDetails(d)
+		}
+		if d, ok := programWorkout.Exercises[types.T3]; ok && d != nil {
+			session.T3 = toEntityDetails(d)
+		}
+
+		workoutMap[workoutID] = session
 	}
 
 	return &ProgramEntity{
 		Current: program.Current,
-		Workout: workout,
+		Workout: workoutMap,
+	}
+}
+
+func toEntityDetails(d *user.Details) *Details {
+	if d == nil {
+		return nil
+	}
+	progressions := make([]RepitionProgression, len(d.RepitionsProgression))
+	for i, p := range d.RepitionsProgression {
+		progressions[i] = RepitionProgression{
+			Set: p.Set,
+			Rep: p.Rep,
+		}
+	}
+
+	return &Details{
+		Name:                 d.Name,
+		Repition:             d.Repition,
+		RepitionsProgression: progressions,
+		Weight:               d.Weight,
+		Increase:             d.Increase,
+		Reset:                d.Reset,
 	}
 }
 
 func (p ProgramEntity) ToProgram() *user.Program {
-	workout := make(map[types.Workout]user.Exercise, len(p.Workout))
+	workouts := make(map[types.Workout]user.WorkoutSession, len(p.Workout))
 
-	// 2. Iterate through each workout  ID (e.g. A1, B1, A2, B2)
-	for workoutID, storageExercises := range p.Workout {
-		exercises := make(user.Exercise, len(storageExercises))
+	for workoutID, storageWorkout := range p.Workout {
+		exercises := make(map[types.ExerciseID]*user.Details, 3)
 
-		// 3. Iterate through each exercise ID in this workout (e.g. T1, T2, T3)
-		for exID, d := range storageExercises {
-
-			progressions := make([]user.Repitions, len(d.RepitionsProgression))
-			for i, p := range d.RepitionsProgression {
-				progressions[i] = user.Repitions{
-					Set: p.Set,
-					Rep: p.Rep,
-				}
-			}
-
-			exercises[exID] = &user.Details{
-				Name:                 d.Name,
-				Repition:             d.Repition,
-				RepitionsProgression: progressions,
-				Weight:               d.Weight,
-				Increase:             d.Increase,
-				Reset:                d.Reset,
-			}
+		if storageWorkout.T1 != nil {
+			exercises[types.T1] = toUserDetails(storageWorkout.T1)
+		}
+		if storageWorkout.T2 != nil {
+			exercises[types.T2] = toUserDetails(storageWorkout.T2)
+		}
+		if storageWorkout.T3 != nil {
+			exercises[types.T3] = toUserDetails(storageWorkout.T3)
 		}
 
-		workout[workoutID] = exercises
+		workouts[workoutID] = user.WorkoutSession{
+			NextWorkout: storageWorkout.Next,
+			Exercises:   exercises,
+		}
 	}
 
 	return &user.Program{
-		Current: p.Current,
-		Workout: workout,
+		Current:  p.Current,
+		Workouts: workouts,
+	}
+}
+
+func toUserDetails(d *Details) *user.Details {
+	if d == nil {
+		return nil
+	}
+	progressions := make([]user.Repitions, len(d.RepitionsProgression))
+	for i, p := range d.RepitionsProgression {
+		progressions[i] = user.Repitions{
+			Set: p.Set,
+			Rep: p.Rep,
+		}
+	}
+
+	return &user.Details{
+		Name:                 d.Name,
+		Repition:             d.Repition,
+		RepitionsProgression: progressions,
+		Weight:               d.Weight,
+		Increase:             d.Increase,
+		Reset:                d.Reset,
 	}
 }

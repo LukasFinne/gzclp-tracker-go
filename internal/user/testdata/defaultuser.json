@@ -1,76 +1,82 @@
 {
   "current": "B1",
-  "workout": {
+  "workouts": {
     "A1": {
-      "T1": {
-        "name": "Squat",
-        "repition": 0,
-        "repitionsProgression": [
-          { "set": 5, "rep": 3 },
-          { "set": 6, "rep": 2 },
-          { "set": 10, "rep": 1 }
-        ],
-        "weight": 10.0,
-        "increase": 5.0,
-        "reset": 0.85
-      },
-      "T2": {
-        "name": "Bench",
-        "repition": 0,
-        "repitionsProgression": [
-          { "set": 3, "rep": 10 },
-          { "set": 3, "rep": 8 },
-          { "set": 3, "rep": 6 }
-        ],
-        "weight": 10.0,
-        "increase": 10.0,
-        "reset": 10.0
-      },
-      "T3": {
-        "name": "Lat pulldown",
-        "repition": 0,
-        "repitionsProgression": [
-          { "set": 3, "rep": 15 }
-        ],
-        "weight": 10.0,
-        "increase": 2.5,
-        "reset": 0.0
+      "nextworkout": "B1",
+      "exercises": {
+        "T1": {
+          "name": "Squat",
+          "repition": 0,
+          "repitionsProgression": [
+            { "set": 5, "rep": 3 },
+            { "set": 6, "rep": 2 },
+            { "set": 10, "rep": 1 }
+          ],
+          "weight": 10.0,
+          "increase": 5.0,
+          "reset": 0.85
+        },
+        "T2": {
+          "name": "Bench",
+          "repition": 0,
+          "repitionsProgression": [
+            { "set": 3, "rep": 10 },
+            { "set": 3, "rep": 8 },
+            { "set": 3, "rep": 6 }
+          ],
+          "weight": 10.0,
+          "increase": 10.0,
+          "reset": 10.0
+        },
+        "T3": {
+          "name": "Lat pulldown",
+          "repition": 0,
+          "repitionsProgression": [
+            { "set": 3, "rep": 15 }
+          ],
+          "weight": 10.0,
+          "increase": 2.5,
+          "reset": 0.0
+        }
       }
     },
     "B1": {
-      "T1": {
-        "name": "OHP",
-        "repition": 0,
-        "repitionsProgression": [
-          { "set": 5, "rep": 3 },
-          { "set": 6, "rep": 2 },
-          { "set": 10, "rep": 1 }
-        ],
-        "weight": 10.0,
-        "increase": 2.5,
-        "reset": 0.85
-      },
-      "T2": {
-        "name": "Deadlift",
-        "repition": 0,
-        "repitionsProgression": [
-          { "set": 3, "rep": 10 },
-          { "set": 3, "rep": 8 },
-          { "set": 3, "rep": 6 }
-        ],
-        "weight": 10.0,
-        "increase": 5.0,
-        "reset": 10.0
-      },
-      "T3": {
-        "name": "Dumbbell row",
-        "repition": 0,
-        "repitionsProgression": [
-          { "set": 3, "rep": 15 }
-        ],
-        "weight": 10.0,
-        "increase": 2.5,
-        "reset": 0.0
+      "nextworkout": "A2",
+      "exercises": {
+        "T1": {
+          "name": "OHP",
+          "repition": 0,
+          "repitionsProgression": [
+            { "set": 5, "rep": 3 },
+            { "set": 6, "rep": 2 },
+            { "set": 10, "rep": 1 }
+          ],
+          "weight": 10.0,
+          "increase": 2.5,
+          "reset": 0.85
+        },
+        "T2": {
+          "name": "Deadlift",
+          "repition": 0,
+          "repitionsProgression": [
+            { "set": 3, "rep": 10 },
+            { "set": 3, "rep": 8 },
+            { "set": 3, "rep": 6 }
+          ],
+          "weight": 10.0,
+          "increase": 5.0,
+          "reset": 10.0
+        },
+        "T3": {
+          "name": "Dumbbell row",
+          "repition": 0,
+          "repitionsProgression": [
+            { "set": 3, "rep": 15 }
+          ],
+          "weight": 10.0,
+          "increase": 2.5,
+          "reset": 0.0
+        }
       }
     }
   }

@@ -6,12 +6,14 @@ import (
 
 // Program has information of each workout and the workouts each exercise
 type Program struct {
-	Current types.Workout              // The current workout
-	Workout map[types.Workout]Exercise // List of all workouts
+	Current  types.Workout                    // The current workout
+	Workouts map[types.Workout]WorkoutSession // List of all workouts
 }
 
-// Exercise contains details of an exercise
-type Exercise map[types.ExerciseID]*Details
+type WorkoutSession struct {
+	NextWorkout types.Workout
+	Exercises   map[types.ExerciseID]*Details
+}
 
 type Details struct {
 	Name                 string
@@ -34,11 +36,11 @@ type Result struct {
 }
 
 func (p *Program) Info() map[types.ExerciseID]Info {
-	exercises := p.Workout[p.Current]
+	workout := p.Workouts[p.Current]
 
-	var allExercises = make(map[types.ExerciseID]Info, len(exercises))
+	var allExercises = make(map[types.ExerciseID]Info, len(workout.Exercises))
 
-	for k, v := range exercises {
+	for k, v := range workout.Exercises {
 		repition := v.RepitionsProgression[v.Repition]
 		allExercises[k] = Info{
 			Name:   v.Name,
@@ -52,10 +54,10 @@ func (p *Program) Info() map[types.ExerciseID]Info {
 }
 
 func (p *Program) Update(result Result) {
-	exercises := p.Workout[result.Workout]
+	workout := p.Workouts[result.Workout]
 
 	for ID, result := range result.Exercises {
-		details := exercises[ID]
+		details := workout.Exercises[ID]
 		if details == nil {
 			continue
 		}
@@ -82,4 +84,7 @@ func (p *Program) Update(result Result) {
 			details.Repition = newRepition
 		}
 	}
+
+	// Rotates the workout program
+	p.Current = workout.NextWorkout
 }

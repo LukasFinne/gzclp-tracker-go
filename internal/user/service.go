@@ -48,11 +48,9 @@ func NewService(userRepo userRepo) *service {
 
 func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (map[types.ExerciseID]Info, error) {
 	program, err := s.userRepo.FindByID(ctx, userID)
-
 	if err != nil {
 		return map[types.ExerciseID]Info{}, err
 	}
-
 	workout := NewWorkout(program)
 
 	return workout.Exercise.Info(), nil

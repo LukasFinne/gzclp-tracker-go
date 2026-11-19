@@ -129,9 +129,12 @@ func TestProgram_Update(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			prog := &Program{
 				Current: types.A1,
-				Workout: map[types.Workout]Exercise{
+				Workouts: map[types.Workout]WorkoutSession{
 					types.A1: {
-						tc.exerciseID: &tc.initialDetail,
+						NextWorkout: types.B1,
+						Exercises: map[types.ExerciseID]*Details{
+							tc.exerciseID: &tc.initialDetail,
+						},
 					},
 				},
 			}
@@ -143,7 +146,7 @@ func TestProgram_Update(t *testing.T) {
 				},
 			})
 
-			got := prog.Workout[types.A1][tc.exerciseID]
+			got := prog.Workouts[types.A1].Exercises[tc.exerciseID]
 			if got.Repition != tc.expectedRepition {
 				t.Errorf("got Repition = %d, want %d", got.Repition, tc.expectedRepition)
 			}
@@ -153,6 +156,9 @@ func TestProgram_Update(t *testing.T) {
 			if math.Abs(got.Reset-tc.expectedReset) > 1e-6 {
 				t.Errorf("got Reset = %v, want %v", got.Reset, tc.expectedReset)
 			}
+			if prog.Current != types.B1 {
+				t.Errorf("got Current = %v, want %v", prog.Current, types.B1)
+			}
 		})
 	}
 }
@@ -160,19 +166,22 @@ func TestProgram_Update(t *testing.T) {
 func TestProgram_Update_Sequential(t *testing.T) {
 	prog := &Program{
 		Current: types.A1,
-		Workout: map[types.Workout]Exercise{
+		Workouts: map[types.Workout]WorkoutSession{
 			types.A1: {
-				types.T1: &Details{
-					Name:     "Squat",
-					Repition: 0,
-					RepitionsProgression: []Repitions{
-						{Set: 5, Rep: 3},
-						{Set: 6, Rep: 2},
-						{Set: 10, Rep: 1},
+				NextWorkout: types.B1,
+				Exercises: map[types.ExerciseID]*Details{
+					types.T1: {
+						Name:     "Squat",
+						Repition: 0,
+						RepitionsProgression: []Repitions{
+							{Set: 5, Rep: 3},
+							{Set: 6, Rep: 2},
+							{Set: 10, Rep: 1},
+						},
+						Weight:   100.0,
+						Increase: 5.0,
+						Reset:    0.85,
 					},
-					Weight:   100.0,
-					Increase: 5.0,
-					Reset:    0.85,
 				},
 			},
 		},
@@ -180,7 +189,7 @@ func TestProgram_Update_Sequential(t *testing.T) {
 
 	// 1. Success on Stage 0 -> weight increases by 5, stays on Stage 0
 	prog.Update(Result{Workout: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: true}})
-	t1 := prog.Workout[types.A1][types.T1]
+	t1 := prog.Workouts[types.A1].Exercises[types.T1]
 	if t1.Repition != 0 || t1.Weight != 105.0 {
 		t.Fatalf("after success: got stage = %d, weight = %v; want stage = 0, weight = 105.0", t1.Repition, t1.Weight)
 	}
