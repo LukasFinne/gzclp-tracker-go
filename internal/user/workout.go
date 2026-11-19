@@ -1,14 +1,24 @@
 package user
 
-import "gzclp-tracker/internal/types"
+import (
+	"gzclp-tracker/internal/types"
+)
 
-// Workout type contains all the derived fields from the database
-type Workout map[types.ExerciseTier]exercise
+// exerciser describes how to find and update all exercises
+type exerciser interface {
+	// Info returns the derived data from a workout and includes an exercises: Name, Weight and SetxRep
+	Info() map[types.ExerciseID]types.Info
 
-// exercise has the weight and setxrep values
-type exercise struct {
-	Name   string  `firestore:"name"`
-	Set    int     `firestore:"set"`
-	Rep    int     `firestore:"rep"`
-	Weight float64 `firestore:"weight"`
+	// Update updates weight, setxrep and changes the current workout based on the result for each exercise in a workout
+	Update(results Result)
+}
+
+func NewWorkout(exerciser exerciser) workout {
+	return workout{
+		Exercise: exerciser,
+	}
+}
+
+type workout struct {
+	Exercise exerciser
 }

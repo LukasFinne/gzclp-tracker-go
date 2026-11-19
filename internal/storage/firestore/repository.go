@@ -21,25 +21,28 @@ func NewUserRepo(client *firestore.Client) *userRepo {
 	}
 }
 
-func (up *userRepo) FindByID(ctx context.Context, userID string) (*types.User, error) {
-	docSnap, err := up.client.Collection("users").Doc(userID).Get(ctx)
+func (up *userRepo) FindByID(ctx context.Context, userID string) (*user.Program, error) {
+	doc, err := up.client.Collection("users").Doc(userID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return nil, user.ErrUserNotFound
+			return nil, types.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to fetch user: %w", err)
 	}
 
-	var user types.User
-	if err := docSnap.DataTo(&user); err != nil {
-		return nil, fmt.Errorf("failed to decode document: %w", err)
+	var program ProgramEntity
+	if err := doc.DataTo(&program); err != nil {
+		return nil, fmt.Errorf("failed to find document: %w", err)
 	}
-	return &user, nil
+	return program.ToProgram(), nil
 }
 
-func (up *userRepo) Save(ctx context.Context, userID string, info *types.User) error {
+func (up *userRepo) Save(ctx context.Context, userID string, info *user.Program) error {
+
+	programEntiy := ToProgramEntity(*info)
+
 	docRef := up.client.Collection("users").Doc(userID)
 	return up.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		return tx.Set(docRef, info, firestore.MergeAll)
+		return tx.Set(docRef, programEntiy, firestore.MergeAll)
 	})
 }

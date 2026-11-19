@@ -12,19 +12,19 @@ import (
 
 // mockUserRepo is a test double implementing the userRepo interface.
 type mockUserRepo struct {
-	findByIDFunc func(ctx context.Context, userID string) (*types.User, error)
-	saveFunc     func(ctx context.Context, userID string, info *types.User) error
-	savedUser    *types.User
+	findByIDFunc func(ctx context.Context, userID string) (*Program, error)
+	saveFunc     func(ctx context.Context, userID string, info *Program) error
+	savedUser    *Program
 }
 
-func (m *mockUserRepo) FindByID(ctx context.Context, userID string) (*types.User, error) {
+func (m *mockUserRepo) FindByID(ctx context.Context, userID string) (*Program, error) {
 	if m.findByIDFunc != nil {
 		return m.findByIDFunc(ctx, userID)
 	}
 	return nil, nil
 }
 
-func (m *mockUserRepo) Save(ctx context.Context, userID string, info *types.User) error {
+func (m *mockUserRepo) Save(ctx context.Context, userID string, info *Program) error {
 	m.savedUser = info
 	if m.saveFunc != nil {
 		return m.saveFunc(ctx, userID, info)
@@ -37,31 +37,31 @@ func TestFetchWorkoutInformation(t *testing.T) {
 		name    string
 		userID  string
 		repo    userRepo
-		want    Workout
+		want    map[types.ExerciseID]types.Info
 		wantErr bool
 	}{
 		{
 			name:   "success - returns workout information",
 			userID: "test-user-id",
 			repo: &mockUserRepo{
-				findByIDFunc: func(ctx context.Context, userID string) (*types.User, error) {
+				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
 					return testdata.LoadDefaultUser(t), nil
 				},
 			},
-			want: Workout{
-				"T1": exercise{
+			want: Exercise{
+				"T1": types.Info{
 					Name:   "OHP",
 					Set:    5,
 					Rep:    3,
-					Weight: 10,
+					Weight: 10.1,
 				},
-				"T2": exercise{
+				"T2": Details{
 					Name:   "Deadlift",
 					Set:    3,
 					Rep:    10,
 					Weight: 10,
 				},
-				"T3": exercise{
+				"T3": Details{
 					Name:   "Dumbbell row",
 					Set:    3,
 					Rep:    15,
@@ -74,7 +74,7 @@ func TestFetchWorkoutInformation(t *testing.T) {
 			name:   "error - repository fails to find user",
 			userID: "non-existent-user",
 			repo: &mockUserRepo{
-				findByIDFunc: func(ctx context.Context, userID string) (*types.User, error) {
+				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
 					return nil, errors.New("database connection failed")
 				},
 			},
@@ -105,17 +105,17 @@ func TestUpload(t *testing.T) {
 	tests := []struct {
 		name    string
 		userID  string
-		result  WorkoutResult
+		result  Result
 		repo    userRepo
-		want    types.User
+		want    Program
 		wantErr bool
 	}{
 		{
 			name:   "success - updates the data correctly",
 			userID: "test-user-id",
-			result: WorkoutResult{
+			result: Result{
 				Workout: types.A1,
-				Exercises: map[types.ExerciseTier]ExerciseResult{
+				Exercises: map[types.ExerciseID]Details{
 					types.T1: {
 						Name:      "Squat",
 						IsSuccess: false,
@@ -131,14 +131,14 @@ func TestUpload(t *testing.T) {
 				},
 			},
 			repo: &mockUserRepo{
-				saveFunc: func(ctx context.Context, userID string, info *types.User) error {
+				saveFunc: func(ctx context.Context, userID string, info *Program) error {
 					return nil
 				},
-				findByIDFunc: func(ctx context.Context, userID string) (*types.User, error) {
+				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
 					return testdata.LoadDefaultUser(t), nil
 				},
 			},
-			want: types.User{
+			want: Program{
 				CurrentWorkout: types.B1,
 				Exercises: func() map[string]types.Repition {
 					u := testdata.LoadDefaultUser(t)

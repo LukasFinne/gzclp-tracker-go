@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gzclp-tracker/internal"
+	"gzclp-tracker/internal/handler"
 	"gzclp-tracker/internal/storage/firestore"
 	"gzclp-tracker/internal/user"
 	"log"
@@ -26,7 +26,7 @@ func main() {
 
 	userRepo := firestore.NewUserRepo(db)
 	userService := user.NewService(userRepo)
-	h := internal.NewHandler(userService)
+	h := handler.New(userService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

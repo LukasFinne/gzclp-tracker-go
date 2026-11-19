@@ -7,7 +7,7 @@ import (
 
 // userRepo is used by services to make user-related queries to firestore
 type userRepo interface {
-	// FindByID fetches all data for a user
+	// FindByID fetches the users training program
 	//
 	// # Parameters
 	//
@@ -16,9 +16,9 @@ type userRepo interface {
 	//
 	// # Return values
 	//
-	//	*types.User - Contains the users workout information
+	//	*Program is the users training program and contains the workout id and the corresponding exercises
 	//	error - returns either a Notfound error or a Generic failed error
-	FindByID(ctx context.Context, userID string) (*types.User, error)
+	FindByID(ctx context.Context, userID string) (*Program, error)
 	// Save updates the related fields in the data through an Transaction
 	//
 	// # Parameters
@@ -32,7 +32,7 @@ type userRepo interface {
 	// # Return values
 	//
 	//	error - returns a update failed error
-	Save(ctx context.Context, userID string, info *types.User) error
+	Save(ctx context.Context, userID string, info *Program) error
 }
 
 // service is for handling user-related data from the database
@@ -46,54 +46,31 @@ func NewService(userRepo userRepo) *service {
 	}
 }
 
-func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Workout, error) {
-	user, err := s.userRepo.FindByID(ctx, userID)
+func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (map[types.ExerciseID]types.Info, error) {
+	program, err := s.userRepo.FindByID(ctx, userID)
 
 	if err != nil {
-		return Workout{}, err
+		return map[types.ExerciseID]types.Info{}, err
 	}
 
-	program := user.Program[user.CurrentWorkout]
+	workout := NewWorkout(program)
 
-	m := make(map[types.ExerciseTier]exercise, len(program))
-
-	for k, v := range program {
-		repetition := user.Exercises[v.Name]
-		progression := repetition[k]
-		m[k] = exercise{
-			Name:   v.Name,
-			Set:    progression.Stages[progression.StageIndex].Sets,
-			Rep:    progression.Stages[progression.StageIndex].Reps,
-			Weight: progression.Weight,
-		}
-	}
-	return m, nil
+	return workout.Exercise.Info(), nil
 }
 
 // Upload calculates the new workout weight, set and rep progession as well as deciding what workout is next.
-func (s service) Upload(ctx context.Context, userID string, workoutResult WorkoutResult) error {
+func (s service) Upload(ctx context.Context, userID string, result Result) error {
+	program, err := s.userRepo.FindByID(ctx, userID)
 
-	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	rotate := user.WorkoutRotation[workoutResult.Workout]
+	workout := NewWorkout(program)
 
-	// Loop iteration:
-	// 1. Finds exercises weight and setxrep for each tier (T1,T2,T3)
-	// 2. Selects the revelant tier (T1,T2,T3)
-	// 3. Updates the weight and setxrep
-	for tier, exercise := range workoutResult.Exercises {
-		reptitions := user.Exercises[exercise.Name]
-		progression := reptitions[tier]
-		progression.CalculateProgression(exercise.IsSuccess)
-	}
+	workout.Exercise.Update(result)
 
-	err = s.userRepo.Save(ctx, userID, &types.User{
-		CurrentWorkout: rotate.Next,
-		Exercises:      user.Exercises,
-	})
+	err = s.userRepo.Save(ctx, userID, program)
 	if err != nil {
 		return err
 	}
