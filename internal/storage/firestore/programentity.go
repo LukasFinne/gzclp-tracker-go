@@ -60,7 +60,7 @@ func ToProgramEntity(program user.Program) *ProgramEntity {
 	}
 }
 
-func toEntityDetails(d *user.Details) *Details {
+func toEntityDetails(d *user.ExerciseState) *Details {
 	if d == nil {
 		return nil
 	}
@@ -86,7 +86,7 @@ func (p ProgramEntity) ToProgram() *user.Program {
 	workouts := make(map[types.Workout]user.WorkoutSession, len(p.Workout))
 
 	for workoutID, storageWorkout := range p.Workout {
-		exercises := make(map[types.ExerciseID]*user.Details, 3)
+		exercises := make(map[types.ExerciseID]*user.ExerciseState, 3)
 
 		if storageWorkout.T1 != nil {
 			exercises[types.T1] = toUserDetails(storageWorkout.T1)
@@ -110,7 +110,7 @@ func (p ProgramEntity) ToProgram() *user.Program {
 	}
 }
 
-func toUserDetails(d *Details) *user.Details {
+func toUserDetails(d *Details) *user.ExerciseState {
 	if d == nil {
 		return nil
 	}
@@ -122,7 +122,7 @@ func toUserDetails(d *Details) *user.Details {
 		}
 	}
 
-	return &user.Details{
+	return &user.ExerciseState{
 		Name:                 d.Name,
 		Repition:             d.Repition,
 		RepitionsProgression: progressions,

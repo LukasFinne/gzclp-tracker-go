@@ -6,7 +6,10 @@ import (
 )
 
 // WorkoutResponse type contains all the derived fields from the training program
-type WorkoutResponse map[types.ExerciseID]Exercise
+type WorkoutResponse struct {
+	Workout   types.Workout                 `json:"workout"`
+	Exercises map[types.ExerciseID]Exercise `json:"exercises"`
+}
 
 type Exercise struct {
 	Name   string  `json:"name"`
@@ -16,10 +19,10 @@ type Exercise struct {
 }
 
 // Converts programInfo to the dto Workout
-func ToResponse(programInfo map[types.ExerciseID]user.Info) WorkoutResponse {
-	workout := make(WorkoutResponse, len(programInfo))
+func ToResponse(exercises user.Exercises) WorkoutResponse {
+	workout := make(map[types.ExerciseID]Exercise, len(exercises.Exercises))
 
-	for k, v := range programInfo {
+	for k, v := range exercises.Exercises {
 		workout[k] = Exercise{
 			Name:   v.Name,
 			Set:    v.Set,
@@ -28,5 +31,8 @@ func ToResponse(programInfo map[types.ExerciseID]user.Info) WorkoutResponse {
 		}
 	}
 
-	return workout
+	return WorkoutResponse{
+		Workout:   exercises.WorkoutID,
+		Exercises: workout,
+	}
 }

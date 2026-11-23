@@ -18,7 +18,7 @@ type ResultRequest struct {
 
 func (r ResultRequest) ToResult() user.Result {
 	return user.Result{
-		Workout:   r.Workout,
+		WorkoutID: r.Workout,
 		Exercises: r.Exercises,
 	}
 }

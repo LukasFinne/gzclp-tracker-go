@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"gzclp-tracker/internal/types"
 )
 
 // userRepo is used by services to make user-related queries to firestore
@@ -46,14 +45,15 @@ func NewService(userRepo userRepo) *service {
 	}
 }
 
-func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (map[types.ExerciseID]Info, error) {
+func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Exercises, error) {
 	program, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return map[types.ExerciseID]Info{}, err
+		return Exercises{}, err
 	}
+
 	workout := NewWorkout(program)
 
-	return workout.Exercise.Info(), nil
+	return workout.Exercise.Start(), nil
 }
 
 // Upload calculates the new workout weight, set and rep progession as well as deciding what workout is next.
@@ -66,9 +66,9 @@ func (s service) Upload(ctx context.Context, userID string, result Result) error
 
 	workout := NewWorkout(program)
 
-	workout.Exercise.Update(result)
+	updatedProgram := workout.Exercise.Finish(result)
 
-	err = s.userRepo.Save(ctx, userID, program)
+	err = s.userRepo.Save(ctx, userID, &updatedProgram)
 	if err != nil {
 		return err
 	}

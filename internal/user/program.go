@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"gzclp-tracker/internal/types"
 )
 
@@ -12,10 +13,10 @@ type Program struct {
 
 type WorkoutSession struct {
 	NextWorkout types.Workout
-	Exercises   map[types.ExerciseID]*Details
+	Exercises   map[types.ExerciseID]*ExerciseState
 }
 
-type Details struct {
+type ExerciseState struct {
 	Name                 string
 	Repition             int
 	RepitionsProgression []Repitions
@@ -29,20 +30,14 @@ type Repitions struct {
 	Rep int
 }
 
-// Result represents a finished workout
-type Result struct {
-	Workout   types.Workout             // id of the workout
-	Exercises map[types.ExerciseID]bool // exercises has the data about which exercise is failed or successed
-}
-
-func (p *Program) Info() map[types.ExerciseID]Info {
+func (p *Program) Start() Exercises {
 	workout := p.Workouts[p.Current]
 
-	var allExercises = make(map[types.ExerciseID]Info, len(workout.Exercises))
+	var allExercises = make(map[types.ExerciseID]Exercise, len(workout.Exercises))
 
 	for k, v := range workout.Exercises {
 		repition := v.RepitionsProgression[v.Repition]
-		allExercises[k] = Info{
+		allExercises[k] = Exercise{
 			Name:   v.Name,
 			Set:    repition.Set,
 			Rep:    repition.Rep,
@@ -50,41 +45,50 @@ func (p *Program) Info() map[types.ExerciseID]Info {
 		}
 	}
 
-	return allExercises
+	return Exercises{
+		WorkoutID: p.Current,
+		Exercises: allExercises,
+	}
 }
 
-func (p *Program) Update(result Result) {
-	workout := p.Workouts[result.Workout]
+func (p *Program) Finish(result Result) Program {
+	workout := p.Workouts[result.WorkoutID]
 
-	for ID, result := range result.Exercises {
-		details := workout.Exercises[ID]
-		if details == nil {
-			continue
-		}
-		if result {
-			details.Weight = details.Weight + details.Increase
-		} else {
+	for ID, success := range result.Exercises {
+		exercise := workout.Exercises[ID]
 
-			repition := details.Repition
-			newRepition := (details.Repition + 1) % len(details.RepitionsProgression)
+		switch {
 
-			// Checks if the repition has been restarted
-			if repition == len(details.RepitionsProgression)-1 && repition > newRepition {
+		// Restart protocol and weight progression
+		case exercise.Repition == len(exercise.RepitionsProgression) && !success:
 
-				if ID == types.T1 {
-					details.Weight = details.Weight * details.Reset // reduces new starting weight
-				}
-
-				if ID == types.T2 {
-					details.Weight = details.Reset + details.Increase // starting weight is slightly higher than previous time on the first step.
-					details.Reset = details.Weight
-				}
+			if ID == types.T1 {
+				exercise.Weight = exercise.Weight * exercise.Reset
 			}
 
-			details.Repition = newRepition
+			if ID == types.T2 {
+				exercise.Weight = exercise.Reset + exercise.Increase
+				exercise.Reset = exercise.Weight
+			}
+
+			exercise.Repition = 0 // Calulate based on the max index
+
+			// Updates to next protocol on failure
+		case !success:
+			newRepition := (exercise.Repition + 1) % len(exercise.RepitionsProgression)
+			exercise.Repition = newRepition
+
+			// Increases weight on success
+		case success:
+			exercise.Weight = exercise.Weight + exercise.Increase
+
+		default:
+			fmt.Errorf("Faulty state cannot progress")
 		}
 	}
 
 	// Rotates the workout program
 	p.Current = workout.NextWorkout
+
+	return *p
 }
