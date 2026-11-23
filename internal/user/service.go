@@ -45,7 +45,7 @@ func NewService(userRepo userRepo) *service {
 	}
 }
 
-func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Exercises, error) {
+func (s service) StartWorkout(ctx context.Context, userID string) (Exercises, error) {
 	program, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return Exercises{}, err
@@ -57,7 +57,7 @@ func (s service) FetchWorkoutInformation(ctx context.Context, userID string) (Ex
 }
 
 // Upload calculates the new workout weight, set and rep progession as well as deciding what workout is next.
-func (s service) Upload(ctx context.Context, userID string, result Result) error {
+func (s service) FinishWorkout(ctx context.Context, userID string, result Result) error {
 	program, err := s.userRepo.FindByID(ctx, userID)
 
 	if err != nil {

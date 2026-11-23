@@ -32,8 +32,8 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/workout", h.FetchWorkout)
-	r.Post("/upload", h.Upload)
+	r.Get("/workout", h.StartWorkout)
+	r.Post("/upload", h.FinishWorkout)
 
 	log.Println("Server running on :3000")
 	if err := http.ListenAndServe(":3000", r); err != nil {

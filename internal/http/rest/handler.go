@@ -10,16 +10,16 @@ import (
 )
 
 type userService interface {
-	// FetchWorkoutInformation fetches the workout program for a user
+	// StartWorkout fetches the current workout for the user
 	//
 	// # Return
 	//
 	//	Workout - a map object that contains data for the workout program(name, weight, setxrep, etc...)
 	//
 	//	Error - Returns either ErrUserNotFound or Generic failed error
-	FetchWorkoutInformation(ctx context.Context, userID string) (user.Exercises, error)
+	StartWorkout(ctx context.Context, userID string) (user.Exercises, error)
 
-	// Upload will updated the database with the new workout result from the client
+	// FinishWorkout updates the database with the new workout result from the client
 	//
 	// # Parameters
 	//
@@ -32,7 +32,7 @@ type userService interface {
 	// # Return
 	//
 	// error - returns a updated failed error
-	Upload(ctx context.Context, userID string, result user.Result) error
+	FinishWorkout(ctx context.Context, userID string, result user.Result) error
 }
 
 type handler struct {
@@ -43,26 +43,29 @@ func New(userService userService) *handler {
 	return &handler{userService: userService}
 }
 
-// FetchWorkout is the handler for /workout
-func (h *handler) FetchWorkout(w http.ResponseWriter, r *http.Request) {
+// StartWorkout is the handler for /workout
+func (h *handler) StartWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "missing user_id", http.StatusBadRequest)
+	}
 
-	workoutInfo, err := h.userService.FetchWorkoutInformation(r.Context(), userID)
+	workout, err := h.userService.StartWorkout(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, types.ErrUserNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
-			http.Error(w, "failed to fetch workout for user", http.StatusInternalServerError)
+			http.Error(w, "failed to start workout for user", http.StatusInternalServerError)
 		}
 	}
 
-	response := ToResponse(workoutInfo)
+	response := ToResponse(workout)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-// Upload is the handler for /upload - it updates the exercise after a workout
-func (h *handler) Upload(w http.ResponseWriter, r *http.Request) {
+// FinishWorkout is the handler for /upload - it updates the exercise after a workout
+func (h *handler) FinishWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		http.Error(w, "missing user_id", http.StatusBadRequest)
@@ -75,7 +78,7 @@ func (h *handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	result := request.ToResult()
 
-	err := h.userService.Upload(r.Context(), userID, result)
+	err := h.userService.FinishWorkout(r.Context(), userID, result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

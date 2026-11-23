@@ -125,7 +125,7 @@ func TestFetchWorkoutInformation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := NewService(tc.repo)
 
-			got, err := svc.FetchWorkoutInformation(context.Background(), tc.userID)
+			got, err := svc.StartWorkout(context.Background(), tc.userID)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("FetchWorkoutInformation() error = %v, wantErr %v", err, tc.wantErr)
 			}
@@ -188,7 +188,7 @@ func TestUpload(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := NewService(tc.repo)
 
-			err := svc.Upload(context.Background(), tc.userID, tc.result)
+			err := svc.FinishWorkout(context.Background(), tc.userID, tc.result)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("Upload() error = %v, wantErr %v", err, tc.wantErr)
 			}
