@@ -66,7 +66,10 @@ func (s service) Upload(ctx context.Context, userID string, result Result) error
 
 	workout := NewWorkout(program)
 
-	updatedProgram := workout.Exercise.Finish(result)
+	updatedProgram, err := workout.Exercise.Finish(result)
+	if err != nil {
+		return err
+	}
 
 	err = s.userRepo.Save(ctx, userID, &updatedProgram)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"gzclp-tracker/internal/types"
 )
 
-func TestProgram_Update(t *testing.T) {
+func TestProgram_Finish(t *testing.T) {
 	defaultStages := []Repitions{
 		{Set: 5, Rep: 3},
 		{Set: 6, Rep: 2},
@@ -17,7 +17,7 @@ func TestProgram_Update(t *testing.T) {
 	tests := []struct {
 		name             string
 		exerciseID       types.ExerciseID
-		initialDetail    Details
+		initialDetail    ExerciseState
 		exerciseResult   bool
 		expectedRepition int
 		expectedWeight   float64
@@ -26,7 +26,7 @@ func TestProgram_Update(t *testing.T) {
 		{
 			name:       "T1 success at stage 0 increases weight and keeps repition stage",
 			exerciseID: types.T1,
-			initialDetail: Details{
+			initialDetail: ExerciseState{
 				Name:                 "Squat",
 				Repition:             0,
 				RepitionsProgression: defaultStages,
@@ -42,7 +42,7 @@ func TestProgram_Update(t *testing.T) {
 		{
 			name:       "T1 success at intermediate stage increases weight and keeps repition stage",
 			exerciseID: types.T1,
-			initialDetail: Details{
+			initialDetail: ExerciseState{
 				Name:                 "Squat",
 				Repition:             1,
 				RepitionsProgression: defaultStages,
@@ -58,7 +58,7 @@ func TestProgram_Update(t *testing.T) {
 		{
 			name:       "T1 failure at stage 0 advances to next stage without weight change",
 			exerciseID: types.T1,
-			initialDetail: Details{
+			initialDetail: ExerciseState{
 				Name:                 "Squat",
 				Repition:             0,
 				RepitionsProgression: defaultStages,
@@ -74,7 +74,7 @@ func TestProgram_Update(t *testing.T) {
 		{
 			name:       "T1 failure at stage 1 advances to stage 2 without weight change",
 			exerciseID: types.T1,
-			initialDetail: Details{
+			initialDetail: ExerciseState{
 				Name:                 "Squat",
 				Repition:             1,
 				RepitionsProgression: defaultStages,
@@ -90,7 +90,7 @@ func TestProgram_Update(t *testing.T) {
 		{
 			name:       "T1 failure at final stage resets stage to 0 and reduces weight by reset factor (15%)",
 			exerciseID: types.T1,
-			initialDetail: Details{
+			initialDetail: ExerciseState{
 				Name:                 "Squat",
 				Repition:             2,
 				RepitionsProgression: defaultStages,
@@ -106,7 +106,7 @@ func TestProgram_Update(t *testing.T) {
 		{
 			name:       "T2 failure at final stage resets stage to 0, updates reset and weight",
 			exerciseID: types.T2,
-			initialDetail: Details{
+			initialDetail: ExerciseState{
 				Name:     "Bench",
 				Repition: 2,
 				RepitionsProgression: []Repitions{
@@ -132,15 +132,15 @@ func TestProgram_Update(t *testing.T) {
 				Workouts: map[types.Workout]WorkoutSession{
 					types.A1: {
 						NextWorkout: types.B1,
-						Exercises: map[types.ExerciseID]*Details{
+						Exercises: map[types.ExerciseID]*ExerciseState{
 							tc.exerciseID: &tc.initialDetail,
 						},
 					},
 				},
 			}
 
-			prog.Update(Result{
-				Workout: types.A1,
+			prog.Finish(Result{
+				WorkoutID: types.A1,
 				Exercises: map[types.ExerciseID]bool{
 					tc.exerciseID: tc.exerciseResult,
 				},
@@ -163,13 +163,13 @@ func TestProgram_Update(t *testing.T) {
 	}
 }
 
-func TestProgram_Update_Sequential(t *testing.T) {
+func TestProgram_Finish_Sequential(t *testing.T) {
 	prog := &Program{
 		Current: types.A1,
 		Workouts: map[types.Workout]WorkoutSession{
 			types.A1: {
 				NextWorkout: types.B1,
-				Exercises: map[types.ExerciseID]*Details{
+				Exercises: map[types.ExerciseID]*ExerciseState{
 					types.T1: {
 						Name:     "Squat",
 						Repition: 0,
@@ -188,26 +188,26 @@ func TestProgram_Update_Sequential(t *testing.T) {
 	}
 
 	// 1. Success on Stage 0 -> weight increases by 5, stays on Stage 0
-	prog.Update(Result{Workout: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: true}})
+	prog.Finish(Result{WorkoutID: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: true}})
 	t1 := prog.Workouts[types.A1].Exercises[types.T1]
 	if t1.Repition != 0 || t1.Weight != 105.0 {
 		t.Fatalf("after success: got stage = %d, weight = %v; want stage = 0, weight = 105.0", t1.Repition, t1.Weight)
 	}
 
 	// 2. Fail on Stage 0 -> moves to Stage 1, weight unchanged
-	prog.Update(Result{Workout: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: false}})
+	prog.Finish(Result{WorkoutID: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: false}})
 	if t1.Repition != 1 || t1.Weight != 105.0 {
 		t.Fatalf("after fail on stage 0: got stage = %d, weight = %v; want stage = 1, weight = 105.0", t1.Repition, t1.Weight)
 	}
 
 	// 3. Fail on Stage 1 -> moves to Stage 2, weight unchanged
-	prog.Update(Result{Workout: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: false}})
+	prog.Finish(Result{WorkoutID: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: false}})
 	if t1.Repition != 2 || t1.Weight != 105.0 {
 		t.Fatalf("after fail on stage 1: got stage = %d, weight = %v; want stage = 2, weight = 105.0", t1.Repition, t1.Weight)
 	}
 
 	// 4. Fail on Stage 2 (final stage) -> resets to Stage 0, weight reduces by 15% (105 * 0.85 = 89.25)
-	prog.Update(Result{Workout: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: false}})
+	prog.Finish(Result{WorkoutID: types.A1, Exercises: map[types.ExerciseID]bool{types.T1: false}})
 	expectedWeight := 105.0 * 0.85
 	if t1.Repition != 0 || math.Abs(t1.Weight-expectedWeight) > 1e-6 {
 		t.Fatalf("after fail on stage 2 (reset): got stage = %d, weight = %v; want stage = 0, weight = %v", t1.Repition, t1.Weight, expectedWeight)

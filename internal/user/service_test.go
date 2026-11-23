@@ -38,7 +38,7 @@ func loadTestProgram(t *testing.T) *Program {
 
 	workouts := make(map[types.Workout]WorkoutSession, len(entity.Workouts))
 	for wID, session := range entity.Workouts {
-		exMap := make(map[types.ExerciseID]*Details, len(session.Exercises))
+		exMap := make(map[types.ExerciseID]*ExerciseState, len(session.Exercises))
 		for eID, d := range session.Exercises {
 			progressions := make([]Repitions, len(d.RepitionsProgression))
 			for i, p := range d.RepitionsProgression {
@@ -47,7 +47,7 @@ func loadTestProgram(t *testing.T) *Program {
 					Rep: p.Rep,
 				}
 			}
-			exMap[eID] = &Details{
+			exMap[eID] = &ExerciseState{
 				Name:                 d.Name,
 				Repition:             d.Repition,
 				RepitionsProgression: progressions,
@@ -73,7 +73,7 @@ func TestFetchWorkoutInformation(t *testing.T) {
 		name    string
 		userID  string
 		repo    userRepo
-		want    map[types.ExerciseID]Info
+		want    Exercises
 		wantErr bool
 	}{
 		{
@@ -84,24 +84,27 @@ func TestFetchWorkoutInformation(t *testing.T) {
 					return loadTestProgram(t), nil
 				},
 			},
-			want: map[types.ExerciseID]Info{
-				types.T1: {
-					Name:   "OHP",
-					Set:    5,
-					Rep:    3,
-					Weight: 10,
-				},
-				types.T2: {
-					Name:   "Deadlift",
-					Set:    3,
-					Rep:    10,
-					Weight: 10,
-				},
-				types.T3: {
-					Name:   "Dumbbell row",
-					Set:    3,
-					Rep:    15,
-					Weight: 10,
+			want: Exercises{
+				WorkoutID: types.B1,
+				Exercises: map[types.ExerciseID]Exercise{
+					types.T1: {
+						Name:   "OHP",
+						Set:    5,
+						Rep:    3,
+						Weight: 10,
+					},
+					types.T2: {
+						Name:   "Deadlift",
+						Set:    3,
+						Rep:    10,
+						Weight: 10,
+					},
+					types.T3: {
+						Name:   "Dumbbell row",
+						Set:    3,
+						Rep:    15,
+						Weight: 10,
+					},
 				},
 			},
 			wantErr: false,
@@ -150,7 +153,7 @@ func TestUpload(t *testing.T) {
 			name:   "success - updates the data correctly",
 			userID: "test-user-id",
 			result: Result{
-				Workout: types.A1,
+				WorkoutID: types.A1,
 				Exercises: map[types.ExerciseID]bool{
 					types.T1: false, // Squat T1 fails -> advances stageIndex (Repition) to 1
 					types.T2: true,  // Bench T2 succeeds -> weight increased by 10 (10 + 10 = 20)

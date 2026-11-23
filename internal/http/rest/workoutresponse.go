@@ -5,7 +5,7 @@ import (
 	"gzclp-tracker/internal/user"
 )
 
-// WorkoutResponse type contains all the derived fields from the training program
+// WorkoutResponse contains the workout ID and exercises
 type WorkoutResponse struct {
 	Workout   types.Workout                 `json:"workout"`
 	Exercises map[types.ExerciseID]Exercise `json:"exercises"`

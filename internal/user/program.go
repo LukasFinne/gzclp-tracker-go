@@ -51,16 +51,22 @@ func (p *Program) Start() Exercises {
 	}
 }
 
-func (p *Program) Finish(result Result) Program {
-	workout := p.Workouts[result.WorkoutID]
+func (p *Program) Finish(result Result) (Program, error) {
+	workout, ok := p.Workouts[result.WorkoutID]
+	if !ok {
+		return Program{}, fmt.Errorf("workoutID %s not found", result.WorkoutID)
+	}
 
 	for ID, success := range result.Exercises {
-		exercise := workout.Exercises[ID]
+		exercise, ok := workout.Exercises[ID]
+		if !ok || exercise == nil {
+			return Program{}, fmt.Errorf("exercise %s not found in workout %s", ID, result.WorkoutID)
+		}
 
 		switch {
 
 		// Restart protocol and weight progression
-		case exercise.Repition == len(exercise.RepitionsProgression) && !success:
+		case exercise.Repition == len(exercise.RepitionsProgression)-1 && !success:
 
 			if ID == types.T1 {
 				exercise.Weight = exercise.Weight * exercise.Reset
@@ -71,7 +77,7 @@ func (p *Program) Finish(result Result) Program {
 				exercise.Reset = exercise.Weight
 			}
 
-			exercise.Repition = 0 // Calulate based on the max index
+			exercise.Repition = 0 // resets the progression to the beginning of the protocol
 
 			// Updates to next protocol on failure
 		case !success:
@@ -83,12 +89,12 @@ func (p *Program) Finish(result Result) Program {
 			exercise.Weight = exercise.Weight + exercise.Increase
 
 		default:
-			fmt.Errorf("Faulty state cannot progress")
+			return Program{}, fmt.Errorf("exercise %s is in an invalid state: repition %d", ID, exercise.Repition)
 		}
 	}
 
 	// Rotates the workout program
 	p.Current = workout.NextWorkout
 
-	return *p
+	return *p, nil
 }

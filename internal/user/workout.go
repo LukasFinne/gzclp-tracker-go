@@ -15,11 +15,15 @@ type exerciser interface {
 	// Finish completes a workout and updates each exercises value
 	//
 	// # Parameters
-	// 	Results - Contains a workouts ID and the workouts exercises result wheater is was failed or succeded
+	// 	Results - The results of each exercise in an workout also contains the corresponding workoutID
 	// # Return
 	//
 	//  Program - the updated data according to the results
-	Finish(results Result) Program
+	//  Error
+	// 		1. Returns a not found error when workoutID or ExerciseID is missing
+	// 		2. Returns a invaild state error when the progression of an exercise cannot be done
+	//
+	Finish(results Result) (Program, error)
 }
 
 func NewWorkout(exerciser exerciser) workout {
