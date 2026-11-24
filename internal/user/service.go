@@ -17,7 +17,7 @@ type userRepo interface {
 	//
 	//	*Program is the users training program and contains the workout id and the corresponding exercises
 	//	error - returns either a Notfound error or a Generic failed error
-	FindByID(ctx context.Context, userID string) (*Program, error)
+	FindByID(ctx context.Context, userID string) (*Routines, error)
 	// Save updates the related fields in the data through an Transaction
 	//
 	// # Parameters
@@ -26,12 +26,12 @@ type userRepo interface {
 	//
 	// userID string
 	//
-	// data *types.User - updated data from the client
+	// routines *Routines
 	//
 	// # Return values
 	//
 	//	error - returns a update failed error
-	Save(ctx context.Context, userID string, info *Program) error
+	Save(ctx context.Context, userID string, routines *Routines) error
 }
 
 // service is for handling user-related data from the database

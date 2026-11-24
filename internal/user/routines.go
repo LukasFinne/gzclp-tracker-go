@@ -5,8 +5,8 @@ import (
 	"gzclp-tracker/internal/types"
 )
 
-// Program has information of each workout and the workouts each exercise
-type Program struct {
+// Routines has information of each workout and the workouts each exercise
+type Routines struct {
 	Current  types.Workout                    // The current workout
 	Workouts map[types.Workout]WorkoutSession // List of all workouts
 }
@@ -30,7 +30,7 @@ type Repitions struct {
 	Rep int
 }
 
-func (p *Program) Start() Exercises {
+func (p *Routines) Start() Exercises {
 	workout := p.Workouts[p.Current]
 
 	var allExercises = make(map[types.ExerciseID]Exercise, len(workout.Exercises))
@@ -51,16 +51,16 @@ func (p *Program) Start() Exercises {
 	}
 }
 
-func (p *Program) Finish(result Result) (Program, error) {
+func (p *Routines) Finish(result Result) (Routines, error) {
 	workout, ok := p.Workouts[result.WorkoutID]
 	if !ok {
-		return Program{}, fmt.Errorf("workoutID %s not found", result.WorkoutID)
+		return Routines{}, fmt.Errorf("workoutID %s not found", result.WorkoutID)
 	}
 
 	for ID, success := range result.Exercises {
 		exercise, ok := workout.Exercises[ID]
 		if !ok || exercise == nil {
-			return Program{}, fmt.Errorf("exercise %s not found in workout %s", ID, result.WorkoutID)
+			return Routines{}, fmt.Errorf("exercise %s not found in workout %s", ID, result.WorkoutID)
 		}
 
 		switch {
@@ -89,7 +89,7 @@ func (p *Program) Finish(result Result) (Program, error) {
 			exercise.Weight = exercise.Weight + exercise.Increase
 
 		default:
-			return Program{}, fmt.Errorf("exercise %s is in an invalid state: repition %d", ID, exercise.Repition)
+			return Routines{}, fmt.Errorf("exercise %s is in an invalid state: repition %d", ID, exercise.Repition)
 		}
 	}
 

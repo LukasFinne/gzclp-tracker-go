@@ -127,7 +127,7 @@ func TestProgram_Finish(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			prog := &Program{
+			prog := &Routines{
 				Current: types.A1,
 				Workouts: map[types.Workout]WorkoutSession{
 					types.A1: {
@@ -164,7 +164,7 @@ func TestProgram_Finish(t *testing.T) {
 }
 
 func TestProgram_Finish_Sequential(t *testing.T) {
-	prog := &Program{
+	prog := &Routines{
 		Current: types.A1,
 		Workouts: map[types.Workout]WorkoutSession{
 			types.A1: {

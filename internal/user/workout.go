@@ -23,7 +23,7 @@ type exerciser interface {
 	// 		1. Returns a not found error when workoutID or ExerciseID is missing
 	// 		2. Returns a invaild state error when the progression of an exercise cannot be done
 	//
-	Finish(results Result) (Program, error)
+	Finish(results Result) (Routines, error)
 }
 
 func NewWorkout(exerciser exerciser) workout {

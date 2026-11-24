@@ -12,19 +12,19 @@ import (
 
 // mockUserRepo is a test double implementing the userRepo interface.
 type mockUserRepo struct {
-	findByIDFunc func(ctx context.Context, userID string) (*Program, error)
-	saveFunc     func(ctx context.Context, userID string, info *Program) error
-	savedUser    *Program
+	findByIDFunc func(ctx context.Context, userID string) (*Routines, error)
+	saveFunc     func(ctx context.Context, userID string, info *Routines) error
+	savedUser    *Routines
 }
 
-func (m *mockUserRepo) FindByID(ctx context.Context, userID string) (*Program, error) {
+func (m *mockUserRepo) FindByID(ctx context.Context, userID string) (*Routines, error) {
 	if m.findByIDFunc != nil {
 		return m.findByIDFunc(ctx, userID)
 	}
 	return nil, nil
 }
 
-func (m *mockUserRepo) Save(ctx context.Context, userID string, info *Program) error {
+func (m *mockUserRepo) Save(ctx context.Context, userID string, info *Routines) error {
 	m.savedUser = info
 	if m.saveFunc != nil {
 		return m.saveFunc(ctx, userID, info)
@@ -32,7 +32,7 @@ func (m *mockUserRepo) Save(ctx context.Context, userID string, info *Program) e
 	return nil
 }
 
-func loadTestProgram(t *testing.T) *Program {
+func loadTestProgram(t *testing.T) *Routines {
 	t.Helper()
 	entity := testdata.LoadDefaultProgramEntity(t)
 
@@ -62,7 +62,7 @@ func loadTestProgram(t *testing.T) *Program {
 		}
 	}
 
-	return &Program{
+	return &Routines{
 		Current:  entity.Current,
 		Workouts: workouts,
 	}
@@ -80,7 +80,7 @@ func TestFetchWorkoutInformation(t *testing.T) {
 			name:   "success - returns workout information",
 			userID: "test-user-id",
 			repo: &mockUserRepo{
-				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
+				findByIDFunc: func(ctx context.Context, userID string) (*Routines, error) {
 					return loadTestProgram(t), nil
 				},
 			},
@@ -113,7 +113,7 @@ func TestFetchWorkoutInformation(t *testing.T) {
 			name:   "error - repository fails to find user",
 			userID: "non-existent-user",
 			repo: &mockUserRepo{
-				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
+				findByIDFunc: func(ctx context.Context, userID string) (*Routines, error) {
 					return nil, errors.New("database connection failed")
 				},
 			},
@@ -146,7 +146,7 @@ func TestUpload(t *testing.T) {
 		userID  string
 		result  Result
 		repo    userRepo
-		want    *Program
+		want    *Routines
 		wantErr bool
 	}{
 		{
@@ -161,14 +161,14 @@ func TestUpload(t *testing.T) {
 				},
 			},
 			repo: &mockUserRepo{
-				saveFunc: func(ctx context.Context, userID string, info *Program) error {
+				saveFunc: func(ctx context.Context, userID string, info *Routines) error {
 					return nil
 				},
-				findByIDFunc: func(ctx context.Context, userID string) (*Program, error) {
+				findByIDFunc: func(ctx context.Context, userID string) (*Routines, error) {
 					return loadTestProgram(t), nil
 				},
 			},
-			want: func() *Program {
+			want: func() *Routines {
 				p := loadTestProgram(t)
 				// Squat T1 failed -> stage 1
 				p.Workouts[types.A1].Exercises[types.T1].Repition = 1

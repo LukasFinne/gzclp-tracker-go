@@ -5,21 +5,21 @@ import (
 	"gzclp-tracker/internal/user"
 )
 
-// ProgramEntity represents the data that is stored in the database
-type ProgramEntity struct {
+// RoutinesEntity represents the data that is stored in the database
+type RoutinesEntity struct {
 	Current types.Workout                    `firestore:"current" json:"current"`
 	Workout map[types.Workout]WorkoutSession `firestore:"workouts" json:"workouts"`
 }
 
 type WorkoutSession struct {
-	Next types.Workout `firestore:"nextworkout" json:"nextworkout"`
-	T1   *Details      `firestore:"T1" json:"T1"`
-	T2   *Details      `firestore:"T2" json:"T2"`
-	T3   *Details      `firestore:"T3" json:"T3"`
+	Next types.Workout  `firestore:"nextworkout" json:"nextworkout"`
+	T1   *ExerciseState `firestore:"T1" json:"T1"`
+	T2   *ExerciseState `firestore:"T2" json:"T2"`
+	T3   *ExerciseState `firestore:"T3" json:"T3"`
 }
 
-// Details contains the progression, current stage and weight configuration for an exercise.
-type Details struct {
+// ExerciseState contains the progression, current stage and weight configuration for an exercise.
+type ExerciseState struct {
 	Name                 string                `firestore:"name" json:"name"`
 	Repition             int                   `firestore:"repition" json:"repition"`
 	RepitionsProgression []RepitionProgression `firestore:"repitionsProgression" json:"repitionsProgression"`
@@ -33,34 +33,34 @@ type RepitionProgression struct {
 	Rep int `firestore:"rep" json:"rep"`
 }
 
-func ToProgramEntity(program user.Program) *ProgramEntity {
-	workoutMap := make(map[types.Workout]WorkoutSession, len(program.Workouts))
+func ToRoutinesEntity(routines user.Routines) *RoutinesEntity {
+	workoutMap := make(map[types.Workout]WorkoutSession, len(routines.Workouts))
 
-	for workoutID, programWorkout := range program.Workouts {
+	for workoutID, workout := range routines.Workouts {
 		session := WorkoutSession{
-			Next: programWorkout.NextWorkout,
+			Next: workout.NextWorkout,
 		}
 
-		if d, ok := programWorkout.Exercises[types.T1]; ok && d != nil {
-			session.T1 = toEntityDetails(d)
+		if d, ok := workout.Exercises[types.T1]; ok && d != nil {
+			session.T1 = toExerciseStateEntity(d)
 		}
-		if d, ok := programWorkout.Exercises[types.T2]; ok && d != nil {
-			session.T2 = toEntityDetails(d)
+		if d, ok := workout.Exercises[types.T2]; ok && d != nil {
+			session.T2 = toExerciseStateEntity(d)
 		}
-		if d, ok := programWorkout.Exercises[types.T3]; ok && d != nil {
-			session.T3 = toEntityDetails(d)
+		if d, ok := workout.Exercises[types.T3]; ok && d != nil {
+			session.T3 = toExerciseStateEntity(d)
 		}
 
 		workoutMap[workoutID] = session
 	}
 
-	return &ProgramEntity{
-		Current: program.Current,
+	return &RoutinesEntity{
+		Current: routines.Current,
 		Workout: workoutMap,
 	}
 }
 
-func toEntityDetails(d *user.ExerciseState) *Details {
+func toExerciseStateEntity(d *user.ExerciseState) *ExerciseState {
 	if d == nil {
 		return nil
 	}
@@ -72,7 +72,7 @@ func toEntityDetails(d *user.ExerciseState) *Details {
 		}
 	}
 
-	return &Details{
+	return &ExerciseState{
 		Name:                 d.Name,
 		Repition:             d.Repition,
 		RepitionsProgression: progressions,
@@ -82,20 +82,20 @@ func toEntityDetails(d *user.ExerciseState) *Details {
 	}
 }
 
-func (p ProgramEntity) ToProgram() *user.Program {
+func (p RoutinesEntity) ToRoutines() *user.Routines {
 	workouts := make(map[types.Workout]user.WorkoutSession, len(p.Workout))
 
 	for workoutID, storageWorkout := range p.Workout {
 		exercises := make(map[types.ExerciseID]*user.ExerciseState, 3)
 
 		if storageWorkout.T1 != nil {
-			exercises[types.T1] = toUserDetails(storageWorkout.T1)
+			exercises[types.T1] = toUserExerciseState(storageWorkout.T1)
 		}
 		if storageWorkout.T2 != nil {
-			exercises[types.T2] = toUserDetails(storageWorkout.T2)
+			exercises[types.T2] = toUserExerciseState(storageWorkout.T2)
 		}
 		if storageWorkout.T3 != nil {
-			exercises[types.T3] = toUserDetails(storageWorkout.T3)
+			exercises[types.T3] = toUserExerciseState(storageWorkout.T3)
 		}
 
 		workouts[workoutID] = user.WorkoutSession{
@@ -104,13 +104,13 @@ func (p ProgramEntity) ToProgram() *user.Program {
 		}
 	}
 
-	return &user.Program{
+	return &user.Routines{
 		Current:  p.Current,
 		Workouts: workouts,
 	}
 }
 
-func toUserDetails(d *Details) *user.ExerciseState {
+func toUserExerciseState(d *ExerciseState) *user.ExerciseState {
 	if d == nil {
 		return nil
 	}

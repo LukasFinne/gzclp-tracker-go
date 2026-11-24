@@ -163,7 +163,7 @@ const testJSON = `{
 }`
 
 func TestProgramEntityUnmarshal(t *testing.T) {
-	var entity firestore.ProgramEntity
+	var entity firestore.RoutinesEntity
 	if err := json.Unmarshal([]byte(testJSON), &entity); err != nil {
 		t.Fatalf("failed to unmarshal JSON: %v", err)
 	}
@@ -200,8 +200,8 @@ func TestProgramEntityUnmarshal(t *testing.T) {
 		t.Errorf("unexpected A1 T3: %+v", a1.T3)
 	}
 
-	// Test ToProgram
-	prog := entity.ToProgram()
+	// Test ToRoutines
+	prog := entity.ToRoutines()
 	if prog.Current != types.A1 {
 		t.Errorf("expected prog.Current to be A1, got %v", prog.Current)
 	}
@@ -212,8 +212,8 @@ func TestProgramEntityUnmarshal(t *testing.T) {
 		t.Errorf("expected Squat, got %v", prog.Workouts[types.A1].Exercises[types.T1].Name)
 	}
 
-	// Test ToProgramEntity round trip
-	roundTripEntity := firestore.ToProgramEntity(*prog)
+	// Test ToRoutinesEntity round trip
+	roundTripEntity := firestore.ToRoutinesEntity(*prog)
 	if !reflect.DeepEqual(&entity, roundTripEntity) {
 		t.Errorf("round trip entity does not match original entity")
 	}
