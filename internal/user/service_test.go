@@ -34,7 +34,7 @@ func (m *mockUserRepo) Save(ctx context.Context, userID string, info *Routines) 
 
 func loadTestProgram(t *testing.T) *Routines {
 	t.Helper()
-	entity := testdata.LoadDefaultProgramEntity(t)
+	entity := testdata.LoadDefaultRoutinesEntity(t)
 
 	workouts := make(map[types.Workout]WorkoutSession, len(entity.Workouts))
 	for wID, session := range entity.Workouts {

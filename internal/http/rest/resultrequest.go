@@ -10,7 +10,7 @@ import (
 // # Fields
 //
 //	Workout - name of the workout
-//	Exercises - Contains all of the failed or succeeded exercises by tier
+//	Exercises - Contains all of the failed or succeeded exercises
 type ResultRequest struct {
 	Workout   types.Workout             `firestore:"workout" json:"workout"`
 	Exercises map[types.ExerciseID]bool `firestore:"exercises" json:"exercises"`

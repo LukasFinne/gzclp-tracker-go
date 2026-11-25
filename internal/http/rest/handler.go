@@ -52,7 +52,7 @@ func (h *handler) StartWorkout(w http.ResponseWriter, r *http.Request) {
 
 	workout, err := h.userService.StartWorkout(r.Context(), userID)
 	if err != nil {
-		if errors.Is(err, types.ErrUserNotFound) {
+		if errors.Is(err, types.ErrNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
 			http.Error(w, "failed to start workout for user", http.StatusInternalServerError)

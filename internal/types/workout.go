@@ -1,10 +1,6 @@
 package types
 
-// Workout defines a workout program
-//
-// Each workout has 3 exercises in their respective program and each have this following this protocol:
-//
-// First exericse is a tier 1 exercise, Second exercise is a tier 2 exercise and the third exercise is a tier 3 exercise
+// Workout defines each workout name
 type Workout string
 
 const (
@@ -14,7 +10,7 @@ const (
 	B2 Workout = "B2"
 )
 
-// ExerciseID represents the ID for an exercise in a program
+// ExerciseID represents the ID for an exercise in a workout
 type ExerciseID string
 
 const (

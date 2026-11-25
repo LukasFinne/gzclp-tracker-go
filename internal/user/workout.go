@@ -4,18 +4,18 @@ import (
 	"gzclp-tracker/internal/types"
 )
 
-// exerciser finishes the workout and updates
+// exerciser starts and finishes a workout
 type exerciser interface {
-	// Start finds the current workout for a user
+	// Start finds the current workout
 	//
 	// # Return
-	//  Exercises has the current workout ID and the workout corresponding exercises
+	//  Exercises contains the current workout ID and a workouts corresponding exercises
 	Start() Exercises
 
-	// Finish completes a workout and updates each exercises value
+	// Finish completes a workout
 	//
 	// # Parameters
-	// 	Results - The results of each exercise in an workout also contains the corresponding workoutID
+	// 	Results - Contains the results of each exercise in an workout and the workout ID
 	// # Return
 	//
 	//  Program - the updated data according to the results
@@ -36,7 +36,7 @@ type workout struct {
 	Exercise exerciser
 }
 
-// Contains the exercises for the current workout and the workout ID
+// Exercises contains the exercises for the current workout and the workout ID
 type Exercises struct {
 	WorkoutID types.Workout
 	Exercises map[types.ExerciseID]Exercise

@@ -4,21 +4,25 @@ import (
 	"context"
 )
 
-// userRepo is used by services to make user-related queries to firestore
+// userRepo is used by services to do user-related queries to the database
 type userRepo interface {
-	// FindByID fetches the users training program
+	// FindByID fetches the user training program data
 	//
 	// # Parameters
 	//
 	//	ctx context.Context - handles request cancellations and timeouts
-	//	userID string
+	//	userID string - is used to fetch the document from the database
 	//
 	// # Return values
 	//
-	//	*Program is the users training program and contains the workout id and the corresponding exercises
-	//	error - returns either a Notfound error or a Generic failed error
+	//	*Routines - contains the user training program data
+	//
+	// Errors
+	//   1. Returns ErrNotFound when the document does not exist
+	// 	 2. Returns failed to fetch user error when fetching the doc fails
+	// 	 3. Returns failed to decode document when decoding to the struct fails
 	FindByID(ctx context.Context, userID string) (*Routines, error)
-	// Save updates the related fields in the data through an Transaction
+	// Save updates fields set in routines through an transaction
 	//
 	// # Parameters
 	//
@@ -26,11 +30,12 @@ type userRepo interface {
 	//
 	// userID string
 	//
-	// routines *Routines
+	// routines *Routines - the updated routine data
 	//
 	// # Return values
 	//
-	//	error - returns a update failed error
+	//	Errors
+	// 	 1. Returns failed to save routines error when the transaction fails
 	Save(ctx context.Context, userID string, routines *Routines) error
 }
 
@@ -46,6 +51,7 @@ func NewService(userRepo userRepo) *service {
 }
 
 func (s service) StartWorkout(ctx context.Context, userID string) (Exercises, error) {
+
 	program, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return Exercises{}, err
@@ -56,10 +62,10 @@ func (s service) StartWorkout(ctx context.Context, userID string) (Exercises, er
 	return workout.Exercise.Start(), nil
 }
 
-// Upload calculates the new workout weight, set and rep progession as well as deciding what workout is next.
+// FinishWorkout save the new routine data by workout result
 func (s service) FinishWorkout(ctx context.Context, userID string, result Result) error {
-	program, err := s.userRepo.FindByID(ctx, userID)
 
+	program, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err
 	}

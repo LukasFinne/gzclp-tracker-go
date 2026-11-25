@@ -13,8 +13,8 @@ import (
 //
 // Parameters
 //
-//		ctx - handles request cancellations and timeouts
-//	 serviceAccountFilePath - path to the serviceAccount.json file
+//	ctx - handles request cancellations and timeouts
+//	serviceAccountFilePath - path to the serviceAccount.json file
 func Init(ctx context.Context, serviceAccountFilePath string) (*firestore.Client, error) {
 	option := option.WithAuthCredentialsFile(option.ServiceAccount, serviceAccountFilePath)
 	app, err := firebase.NewApp(ctx, nil, option)

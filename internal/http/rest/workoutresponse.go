@@ -18,7 +18,6 @@ type Exercise struct {
 	Weight float64 `json:"weight"`
 }
 
-// Converts programInfo to the dto Workout
 func ToResponse(exercises user.Exercises) WorkoutResponse {
 	workout := make(map[types.ExerciseID]Exercise, len(exercises.Exercises))
 

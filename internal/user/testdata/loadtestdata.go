@@ -11,19 +11,19 @@ import (
 //go:embed defaultuser.json
 var defaultUserJSON []byte
 
-// TestProgramEntity is a local JSON representation of the test data
+// TestRoutinesEntity is a local JSON representation of the test data
 // to avoid import cycles between user and storage/firestore.
-type TestProgramEntity struct {
+type TestRoutinesEntity struct {
 	Current  types.Workout                        `json:"current"`
 	Workouts map[types.Workout]TestWorkoutSession `json:"workouts"`
 }
 
 type TestWorkoutSession struct {
-	NextWorkout types.Workout                    `json:"nextworkout"`
-	Exercises   map[types.ExerciseID]TestDetails `json:"exercises"`
+	NextWorkout types.Workout                     `json:"nextworkout"`
+	Exercises   map[types.ExerciseID]TestExercise `json:"exercises"`
 }
 
-type TestDetails struct {
+type TestExercise struct {
 	Name                 string                    `json:"name"`
 	Repition             int                       `json:"repition"`
 	RepitionsProgression []TestRepitionProgression `json:"repitionsProgression"`
@@ -37,10 +37,10 @@ type TestRepitionProgression struct {
 	Rep int `json:"rep"`
 }
 
-// LoadDefaultProgramEntity unmarshals defaultuser.json into a TestProgramEntity.
-func LoadDefaultProgramEntity(t *testing.T) *TestProgramEntity {
+// LoadDefaultRoutinesEntity unmarshals defaultuser.json into a TestRoutinesEntity.
+func LoadDefaultRoutinesEntity(t *testing.T) *TestRoutinesEntity {
 	t.Helper()
-	var entity TestProgramEntity
+	var entity TestRoutinesEntity
 	if err := json.Unmarshal(defaultUserJSON, &entity); err != nil {
 		t.Fatalf("failed to unmarshal defaultuser.json: %v", err)
 	}
