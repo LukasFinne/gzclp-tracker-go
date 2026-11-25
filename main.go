@@ -18,11 +18,20 @@ func main() {
 	ctx := context.Background()
 	serviceAccountFilePath := os.Getenv("SERVICE_ACCOUNT_PATH")
 
-	db, err := firestore.Init(ctx, serviceAccountFilePath)
+	app, err := firestore.Init(ctx, serviceAccountFilePath)
 	if err != nil {
-		log.Fatalf("Failed to initialize Firestore: %v", err)
+
 	}
-	defer db.Close()
+
+	auth, err := firestore.Auth(ctx, app)
+	if err != nil {
+
+	}
+
+	db, err := firestore.DB(ctx, app)
+	if err != nil {
+
+	}
 
 	userRepo := firestore.NewUserRepo(db)
 	userService := user.NewService(userRepo)
@@ -31,6 +40,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(handler.AuthMiddlware(auth))
 
 	r.Get("/workout", h.StartWorkout)
 	r.Post("/upload", h.FinishWorkout)
