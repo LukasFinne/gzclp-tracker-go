@@ -7,11 +7,11 @@ import (
 
 // RoutinesEntity represents the data that is stored in the database
 type RoutinesEntity struct {
-	Current types.Workout                    `firestore:"current" json:"current"`
-	Workout map[types.Workout]WorkoutSession `firestore:"workouts" json:"workouts"`
+	Current types.Workout             `firestore:"current" json:"current"`
+	Workout map[types.Workout]Workout `firestore:"workouts" json:"workouts"`
 }
 
-type WorkoutSession struct {
+type Workout struct {
 	Next types.Workout  `firestore:"nextworkout" json:"nextworkout"`
 	T1   *ExerciseState `firestore:"T1" json:"T1"`
 	T2   *ExerciseState `firestore:"T2" json:"T2"`
@@ -34,24 +34,24 @@ type RepitionProgression struct {
 }
 
 func ToRoutinesEntity(routines user.Routines) *RoutinesEntity {
-	workoutMap := make(map[types.Workout]WorkoutSession, len(routines.Workouts))
+	workoutMap := make(map[types.Workout]Workout, len(routines.Workouts))
 
 	for workoutID, workout := range routines.Workouts {
-		session := WorkoutSession{
+		exercise := Workout{
 			Next: workout.NextWorkout,
 		}
 
 		if d, ok := workout.Exercises[types.T1]; ok && d != nil {
-			session.T1 = toExerciseStateEntity(d)
+			exercise.T1 = toExerciseStateEntity(d)
 		}
 		if d, ok := workout.Exercises[types.T2]; ok && d != nil {
-			session.T2 = toExerciseStateEntity(d)
+			exercise.T2 = toExerciseStateEntity(d)
 		}
 		if d, ok := workout.Exercises[types.T3]; ok && d != nil {
-			session.T3 = toExerciseStateEntity(d)
+			exercise.T3 = toExerciseStateEntity(d)
 		}
 
-		workoutMap[workoutID] = session
+		workoutMap[workoutID] = exercise
 	}
 
 	return &RoutinesEntity{
@@ -83,7 +83,7 @@ func toExerciseStateEntity(d *user.ExerciseState) *ExerciseState {
 }
 
 func (p RoutinesEntity) ToRoutines() *user.Routines {
-	workouts := make(map[types.Workout]user.WorkoutSession, len(p.Workout))
+	workouts := make(map[types.Workout]user.Workout, len(p.Workout))
 
 	for workoutID, storageWorkout := range p.Workout {
 		exercises := make(map[types.ExerciseID]*user.ExerciseState, 3)
@@ -98,7 +98,7 @@ func (p RoutinesEntity) ToRoutines() *user.Routines {
 			exercises[types.T3] = toUserExerciseState(storageWorkout.T3)
 		}
 
-		workouts[workoutID] = user.WorkoutSession{
+		workouts[workoutID] = user.Workout{
 			NextWorkout: storageWorkout.Next,
 			Exercises:   exercises,
 		}

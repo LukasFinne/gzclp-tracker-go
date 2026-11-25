@@ -129,7 +129,7 @@ func TestProgram_Finish(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			prog := &Routines{
 				Current: types.A1,
-				Workouts: map[types.Workout]WorkoutSession{
+				Workouts: map[types.Workout]Workout{
 					types.A1: {
 						NextWorkout: types.B1,
 						Exercises: map[types.ExerciseID]*ExerciseState{
@@ -166,7 +166,7 @@ func TestProgram_Finish(t *testing.T) {
 func TestProgram_Finish_Sequential(t *testing.T) {
 	prog := &Routines{
 		Current: types.A1,
-		Workouts: map[types.Workout]WorkoutSession{
+		Workouts: map[types.Workout]Workout{
 			types.A1: {
 				NextWorkout: types.B1,
 				Exercises: map[types.ExerciseID]*ExerciseState{

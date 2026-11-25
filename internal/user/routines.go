@@ -7,11 +7,11 @@ import (
 
 // Routines has information of each workout and the workouts each exercise
 type Routines struct {
-	Current  types.Workout                    // The current workout
-	Workouts map[types.Workout]WorkoutSession // List of all workouts
+	Current  types.Workout             // The current workout
+	Workouts map[types.Workout]Workout // List of all workouts
 }
 
-type WorkoutSession struct {
+type Workout struct {
 	NextWorkout types.Workout
 	Exercises   map[types.ExerciseID]*ExerciseState
 }

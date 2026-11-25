@@ -36,10 +36,10 @@ func loadTestProgram(t *testing.T) *Routines {
 	t.Helper()
 	entity := testdata.LoadDefaultRoutinesEntity(t)
 
-	workouts := make(map[types.Workout]WorkoutSession, len(entity.Workouts))
-	for wID, session := range entity.Workouts {
-		exMap := make(map[types.ExerciseID]*ExerciseState, len(session.Exercises))
-		for eID, d := range session.Exercises {
+	workouts := make(map[types.Workout]Workout, len(entity.Workouts))
+	for wID, workout := range entity.Workouts {
+		exMap := make(map[types.ExerciseID]*ExerciseState, len(workout.Exercises))
+		for eID, d := range workout.Exercises {
 			progressions := make([]Repitions, len(d.RepitionsProgression))
 			for i, p := range d.RepitionsProgression {
 				progressions[i] = Repitions{
@@ -56,8 +56,8 @@ func loadTestProgram(t *testing.T) *Routines {
 				Reset:                d.Reset,
 			}
 		}
-		workouts[wID] = WorkoutSession{
-			NextWorkout: session.NextWorkout,
+		workouts[wID] = Workout{
+			NextWorkout: workout.NextWorkout,
 			Exercises:   exMap,
 		}
 	}
