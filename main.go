@@ -16,8 +16,9 @@ import (
 // main intializes everything required for the applicaiton server to start
 func main() {
 	ctx := context.Background()
-	serviceAccountFilePath := os.Getenv("SERVICE_ACCOUNT_PATH")
-	if serviceAccountFilePath != "" {
+
+	serviceAccountFilePath, ok := os.LookupEnv("SERVICE_ACCOUNT_PATH")
+	if !ok {
 		log.Fatalf("error SERVICE_ACCOUNT_PATH env is not set")
 	}
 
