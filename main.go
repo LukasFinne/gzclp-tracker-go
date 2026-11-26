@@ -16,13 +16,32 @@ import (
 // main intializes everything required for the applicaiton server to start
 func main() {
 	ctx := context.Background()
-	serviceAccountFilePath := os.Getenv("SERVICE_ACCOUNT_PATH")
 
-	db, err := firestore.Init(ctx, serviceAccountFilePath)
-	if err != nil {
-		log.Fatalf("Failed to initialize Firestore: %v", err)
+	serviceAccountFilePath, ok := os.LookupEnv("SERVICE_ACCOUNT_PATH")
+	if !ok {
+		log.Fatalf("error SERVICE_ACCOUNT_PATH env is not set")
 	}
-	defer db.Close()
+
+	app, err := firestore.App(ctx, serviceAccountFilePath)
+	if err != nil {
+		log.Fatalf("error initializing firebase app: %v", err)
+	}
+
+	auth, err := firestore.Auth(ctx, app)
+	if err != nil {
+		log.Fatalf("error initializing firebase auth: %v", err)
+	}
+
+	db, err := firestore.DB(ctx, app)
+	if err != nil {
+		log.Fatalf("error initializing firestore: %v", err)
+	}
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing firestore client: %v", err)
+		}
+	}()
 
 	userRepo := firestore.NewUserRepo(db)
 	userService := user.NewService(userRepo)
@@ -31,6 +50,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(handler.AuthMiddleware(auth))
 
 	r.Get("/workout", h.StartWorkout)
 	r.Post("/upload", h.FinishWorkout)
