@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"cloud.google.com/go/firestore"
@@ -10,12 +11,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-type Clients struct {
-	Firestore *firestore.Client
-	Auth      *auth.Client
-}
-
-// Init return an authanticated firestore client instance using the applications default credentials
+// App intializses the firebase app with a service account file
 //
 // Parameters
 //
@@ -26,9 +22,10 @@ type Clients struct {
 //
 //  1. A firebase app instance
 //  2. An Error is returned when failing to initialize the instance
-func Init(ctx context.Context, serviceAccountFilePath string) (*firebase.App, error) {
-	option := option.WithAuthCredentialsFile(option.ServiceAccount, serviceAccountFilePath)
-	app, err := firebase.NewApp(ctx, nil, option)
+func App(ctx context.Context, serviceAccountFilePath string) (*firebase.App, error) {
+	opt := option.WithAuthCredentialsFile(option.ServiceAccount, serviceAccountFilePath)
+
+	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing firebase app: %w", err)
 	}
@@ -45,26 +42,29 @@ func DB(ctx context.Context, app *firebase.App) (*firestore.Client, error) {
 	return client, nil
 }
 
-func Auth(ctx context.Context, app *firebase.App) (firebaseAuth, error) {
+func Auth(ctx context.Context, app *firebase.App) (*FirebaseAuth, error) {
 	client, err := app.Auth(ctx)
 	if err != nil {
-		return firebaseAuth{}, fmt.Errorf("error getting Auth client: %w", err)
+		return nil, fmt.Errorf("error getting Auth client: %w", err)
 	}
 
-	return firebaseAuth{
+	return &FirebaseAuth{
 		client: client,
 	}, nil
 }
 
-type firebaseAuth struct {
+type FirebaseAuth struct {
 	client *auth.Client
 }
 
-func (fv firebaseAuth) VerifyToken(ctx context.Context, idToken string) (string, error) {
+func (fv *FirebaseAuth) VerifyToken(ctx context.Context, idToken string) (string, error) {
+	if fv == nil || fv.client == nil {
+		return "", errors.New("firebase auth client is not initialized")
+	}
 
 	token, err := fv.client.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		return "", fmt.Errorf("error verifying ID token: %v\n", err)
+		return "", fmt.Errorf("error verifying ID token: %w", err)
 	}
 
 	return token.UID, nil
